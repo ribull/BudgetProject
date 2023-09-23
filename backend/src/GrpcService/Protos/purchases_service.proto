@@ -1,33 +1,34 @@
 syntax = "proto3";
 
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
 
 package budget_proto;
 
 service PurchasesService {
   rpc GetPurchases (GetPurchasesRequest) returns (GetPurchasesResponse);
+  rpc AddPurchase (AddPurchaseRequest) returns (AddPurchaseResponse);
 }
 
 message GetPurchasesRequest {
-  optional int32 id = 1;
-  optional string description = 2;
-  optional string category = 3;
-  optional google.protobuf.Timestamp start_time = 4;
-  optional google.protobuf.Timestamp end_time = 5;
+  optional google.protobuf.StringValue description = 1;
+  optional google.protobuf.StringValue category = 2;
+  optional google.protobuf.Timestamp start_time = 3;
+  optional google.protobuf.Timestamp end_time = 4;
 }
 
 message GetPurchasesResponse {
   repeated Purchase purchases = 1;
 }
 
-message InsertPurchaseRequest {
+message AddPurchaseRequest {
   google.protobuf.Timestamp date = 1;
   string description = 2;
-  string amount = 3;
+  double amount = 3;
   string category = 4;
 }
 
-message InsertPurchaseResponse { }
+message AddPurchaseResponse { }
 
 message Purchase {
   int32 id = 1;

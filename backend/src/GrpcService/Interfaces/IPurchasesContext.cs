@@ -1,6 +1,6 @@
 ﻿using Domain.Models;
 
-namespace GrpcService.Interfaces;
+namespace Backend.Interfaces;
 
 public interface IPurchasesContext
 {

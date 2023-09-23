@@ -1,4 +1,4 @@
-﻿namespace GrpcService.Interfaces;
+﻿namespace Backend.Interfaces;
 
 public interface IMetadataContext
 {

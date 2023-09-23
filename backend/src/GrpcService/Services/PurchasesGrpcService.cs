@@ -1,33 +1,50 @@
 using Grpc.Core;
 using BudgetProto;
-using GrpcService.Interfaces;
-using GrpcService.Extensions;
+using Backend.Interfaces;
+using Backend.Extensions;
 
-namespace Budget.Services;
+namespace Backend.Services;
 
 public class PurchasesGrpcService : PurchasesService.PurchasesServiceBase
 {
-    private readonly ILogger<PurchasesGrpcService> _logger;
-
     private readonly IPurchasesContext _purchasesContext;
+    private readonly IMetadataContext _metadataContext;
 
-    public PurchasesGrpcService(ILogger<PurchasesGrpcService> logger, IPurchasesContext purchasesContext)
+    public PurchasesGrpcService(IPurchasesContext purchasesContext, IMetadataContext metadataContext)
     {
-        _logger = logger;
         _purchasesContext = purchasesContext;
+        _metadataContext = metadataContext;
     }
 
-    public override async Task<GetPurchasesResponse> GetPurchases(GetPurchasesRequest request, ServerCallContext context)
+    public override async Task<GetPurchasesResponse> GetPurchases(GetPurchasesRequest request, ServerCallContext? context)
     {
         IEnumerable<Domain.Models.Purchase> purchases = await _purchasesContext.GetPurchases(
                 description: request.Description,
                 category: request.Category,
-                startDate: request?.StartTime.ToDateTime(),
-                endDate: request?.EndTime.ToDateTime());
+                startDate: request.StartTime?.ToDateTime(),
+                endDate: request.EndTime?.ToDateTime());
 
         GetPurchasesResponse response = new();
         response.Purchases.Add(purchases.Select(p => p.ToPurchaseProto()));
 
         return response;
+    }
+
+    public override async Task<AddPurchaseResponse> AddPurchase(AddPurchaseRequest request, ServerCallContext? context)
+    {
+        if (!await _metadataContext.DoesCategoryExist(request.Category))
+        {
+            throw new RpcException(new Status(StatusCode.NotFound, $"The category {request.Category} does not exist"));
+        }
+
+        await _purchasesContext.AddPurchase(new Domain.Models.Purchase
+        {
+            Date = request.Date.ToDateTime(),
+            Description = request.Description,
+            Amount = request.Amount,
+            Category = request.Category
+        });
+
+        return new AddPurchaseResponse();
     }
 }

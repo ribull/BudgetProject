@@ -1,31 +1,37 @@
-using BackupFunctionalTests.Helpers;
+using BackendFunctionalTests.Helpers;
 using Domain.Models;
-using GrpcService.Implementations;
-using GrpcService.Interfaces;
+using Backend.Implementations;
+using Backend.Interfaces;
 using Moq;
 using NUnit.Framework;
+using Microsoft.Extensions.Configuration;
 
-namespace BackupFunctionalTests;
+namespace BackendFunctionalTests;
 
 [TestFixture]
 public class PurchasesContextFunctionalTests
 {
     private ISqlHelper _sqlHelper;
+    private IConfiguration _config;
     private BudgetDatabaseDocker _budgetDatabaseDocker;
-    private Mock<IMetadataContext> _mockMetadataContext;
 
     private IPurchasesContext _purchasesContext;
 
     [OneTimeSetUp]
     public async Task OneTimeSetUp()
     {
-        _budgetDatabaseDocker = new BudgetDatabaseDocker();
+        _budgetDatabaseDocker = new BudgetDatabaseDocker("purchases-context-tests-sqlserver-", "BudgetDatabase");
         await _budgetDatabaseDocker.StartContainer();
 
         _sqlHelper = new SqlHelper(_budgetDatabaseDocker.ConnectionString!);
-        _mockMetadataContext = new();
 
-        _purchasesContext = new PurchasesContext(_sqlHelper, _mockMetadataContext.Object);
+        _config = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string>()
+            {
+                { "BudgetDatabaseName", _budgetDatabaseDocker.DatabaseName }
+            }).Build();
+
+        _purchasesContext = new PurchasesContext(_config, _sqlHelper);
     }
 
     [OneTimeTearDown]
@@ -53,9 +59,6 @@ public class PurchasesContextFunctionalTests
         int categoryId = 100;
         string category = "TestCategory";
 
-        _mockMetadataContext.Setup(mc => mc.DoesCategoryExist(category))
-            .ReturnsAsync(true);
-
         await AddCategory(categoryId, category);
 
         Purchase testPurchase = new Purchase
@@ -70,7 +73,7 @@ public class PurchasesContextFunctionalTests
         await _purchasesContext.AddPurchase(testPurchase);
 
         // Assert
-        Assert.That((await _sqlHelper.QueryAsync<int>(BudgetDatabaseDocker.DATABASE_NAME,
+        Assert.That((await _sqlHelper.QueryAsync<int>(_budgetDatabaseDocker.DatabaseName,
 $@"SELECT
     CategoryId
 FROM Purchase
@@ -171,7 +174,7 @@ WHERE
     {
         // Arrange
         // Simulate a deleted category
-        await _sqlHelper.ExecuteAsync(BudgetDatabaseDocker.DATABASE_NAME,
+        await _sqlHelper.ExecuteAsync(_budgetDatabaseDocker.DatabaseName,
 $@"INSERT INTO Purchase
 (
     Date,
@@ -201,7 +204,7 @@ VALUES
             throw new Exception("The category is null, you should have passed a purchase without a null category");
         }
 
-        await _sqlHelper.ExecuteAsync(BudgetDatabaseDocker.DATABASE_NAME,
+        await _sqlHelper.ExecuteAsync(_budgetDatabaseDocker.DatabaseName,
 $@"SET IDENTITY_INSERT Purchase ON;
 
 INSERT INTO Purchase
@@ -226,7 +229,7 @@ SET IDENTITY_INSERT Purchase OFF;");
 
     private async Task AddCategory(int id, string category)
     {
-        await _sqlHelper.ExecuteAsync(BudgetDatabaseDocker.DATABASE_NAME,
+        await _sqlHelper.ExecuteAsync(_budgetDatabaseDocker.DatabaseName,
 $@"SET IDENTITY_INSERT Category ON;
 
 INSERT INTO Category

@@ -1,6 +1,6 @@
 ﻿using Dapper;
 
-namespace GrpcService.Interfaces;
+namespace Backend.Interfaces;
 
 public interface ISqlHelper
 {

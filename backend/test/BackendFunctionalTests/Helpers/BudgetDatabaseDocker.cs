@@ -2,21 +2,20 @@
 using System.Runtime.InteropServices;
 using Docker.DotNet;
 using Docker.DotNet.Models;
-using GrpcService.Implementations;
-using GrpcService.Interfaces;
+using Backend.Implementations;
+using Backend.Interfaces;
 using Microsoft.SqlServer.Dac;
 using NUnit.Framework;
 
-namespace BackupFunctionalTests.Helpers;
+namespace BackendFunctionalTests.Helpers;
 
 public class BudgetDatabaseDocker : IAsyncDisposable
 {
     public const string SA_PASSWORD = "Password1";
-    public const string CONTAINER_BASE_NAME = "sql-server-docker-test-container-";
     public const int BASE_CONTAINER_PORT = 10000;
-    public const string DATABASE_NAME = "BudgetDatabase";
     public const string CONTAINER_IMAGE = "mcr.microsoft.com/mssql/server:2019-latest";
 
+    private readonly string _containerBaseName;
     private string? _containerId = null;
     private string? _containerName = null;
     private int? _containerPort = null;
@@ -26,7 +25,9 @@ public class BudgetDatabaseDocker : IAsyncDisposable
 
     public ISqlConnectionStringBuilder? ConnectionString { get; private set; }
 
-    public BudgetDatabaseDocker()
+    public string DatabaseName { get; private set; }
+
+    public BudgetDatabaseDocker(string baseName, string databaseName)
     {
         string dockerClientUri = "";
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
@@ -40,23 +41,17 @@ public class BudgetDatabaseDocker : IAsyncDisposable
 
         _dockerClient = new DockerClientConfiguration(new Uri(dockerClientUri))
             .CreateClient();
+
+        _containerBaseName = baseName;
+
+        DatabaseName = databaseName;
     }
 
     public async Task StartContainer()
     {
         await _dockerClient.Images.CreateImageAsync(new ImagesCreateParameters { FromImage = CONTAINER_IMAGE }, new AuthConfig(), new Progress<JSONMessage>());
 
-        IList<ContainerListResponse> containerListResponses = await _dockerClient.Containers.ListContainersAsync(new ContainersListParameters
-        {
-            Filters = new Dictionary<string, IDictionary<string, bool>>()
-            {
-                { "ancestor", new Dictionary<string, bool>()
-                    {
-                        { CONTAINER_IMAGE, true }
-                    }
-                }
-            }
-        });
+        IList<ContainerListResponse> containerListResponses = await _dockerClient.Containers.ListContainersAsync(new ContainersListParameters());
 
         int servernum = 1;
         foreach (ContainerListResponse containerListResponse in containerListResponses)
@@ -64,14 +59,14 @@ public class BudgetDatabaseDocker : IAsyncDisposable
             foreach (string containerName in containerListResponse.Names)
             {
                 TestContext.Progress.WriteLine(containerName);
-                if (containerName.StartsWith(CONTAINER_BASE_NAME))
+                if (containerName.StartsWith(_containerBaseName))
                 {
                     servernum++;
                 }
             }
         }
 
-        _containerName = $"{CONTAINER_BASE_NAME}{servernum}";
+        _containerName = $"{_containerBaseName}{servernum}";
         _containerPort = BASE_CONTAINER_PORT + servernum;
 
         CreateContainerResponse response = await _dockerClient.Containers.CreateContainerAsync(new CreateContainerParameters
@@ -120,7 +115,7 @@ public class BudgetDatabaseDocker : IAsyncDisposable
                 using (DacPackage dacPackage = DacPackage.Load(Path.Join(Directory.GetCurrentDirectory(), "BudgetDatabase.dacpac")))
                 {
                     DacServices dacServices = new(ConnectionString!.GetConnectionString("master"));
-                    dacServices.Deploy(dacPackage, DATABASE_NAME);
+                    dacServices.Deploy(dacPackage, DatabaseName);
                 }
 
                 return;
@@ -134,8 +129,8 @@ public class BudgetDatabaseDocker : IAsyncDisposable
     public async Task DropDb()
     {
         await _sqlHelper!.ExecuteAsync(
-$@"ALTER DATABASE {DATABASE_NAME} SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
-DROP DATABASE {DATABASE_NAME}");
+$@"ALTER DATABASE {DatabaseName} SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+DROP DATABASE {DatabaseName}");
     }
 
     public async Task ResetDb()
@@ -146,7 +141,7 @@ DROP DATABASE {DATABASE_NAME}");
 
     public async ValueTask DisposeAsync()
     {
-        await _dockerClient.Containers.RemoveContainerAsync(_containerName, new ContainerRemoveParameters { Force = true, RemoveVolumes = true });
+        await _dockerClient.Containers.RemoveContainerAsync(_containerName, new ContainerRemoveParameters { Force = true });
         _dockerClient.Dispose();
     }
 
@@ -154,8 +149,7 @@ DROP DATABASE {DATABASE_NAME}");
     {
         try
         {
-            await _sqlHelper!.ExecuteAsync("SELECT @@SERVERNAME");
-            return true;
+            return await _sqlHelper!.Exists("master", "SELECT 1 FROM sys.databases WHERE database_id = DB_ID('tempdb') AND [state] = 0");
         }
         catch (Exception)
         {

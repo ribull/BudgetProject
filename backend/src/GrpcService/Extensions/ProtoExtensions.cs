@@ -1,6 +1,6 @@
 ﻿using Google.Protobuf.WellKnownTypes;
 
-namespace GrpcService.Extensions;
+namespace Backend.Extensions;
 
 public static class ProtoExtensions
 {
@@ -9,7 +9,7 @@ public static class ProtoExtensions
 		return new BudgetProto.Purchase
 		{
 			Id = purchase.PurchaseId,
-			Date = purchase.Date.ToTimestamp(),
+			Date = purchase.Date.ToUniversalTime().ToTimestamp(),
 			Description = purchase.Description,
 			Amount = purchase.Amount,
 			Category = purchase.Category

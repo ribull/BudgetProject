@@ -1,12 +1,12 @@
 ﻿using Dapper;
-using GrpcService.Interfaces;
+using Backend.Interfaces;
 using Microsoft.Data.SqlClient;
 
-namespace GrpcService.Implementations;
+namespace Backend.Implementations;
 
 public class SqlHelper : ISqlHelper
 {
-    private ISqlConnectionStringBuilder _connectionStringBuilder;
+    private readonly ISqlConnectionStringBuilder _connectionStringBuilder;
 
     public SqlHelper(ISqlConnectionStringBuilder connectionStringBuilder)
     {

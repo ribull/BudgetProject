@@ -1,20 +1,18 @@
 ﻿using Dapper;
 using Domain.Models;
-using GrpcService.Interfaces;
+using Backend.Interfaces;
 
-namespace GrpcService.Implementations;
+namespace Backend.Implementations;
 
 public class PurchasesContext : IPurchasesContext
 {
-    private const string BUDGET_DB = "BudgetDatabase";
+    private readonly IConfiguration _config;
+    private readonly ISqlHelper _sqlHelper;
 
-    private ISqlHelper _sqlHelper;
-    private IMetadataContext _metadataContext;
-
-    public PurchasesContext(ISqlHelper sqlHelper, IMetadataContext metadataContext)
+    public PurchasesContext(IConfiguration config, ISqlHelper sqlHelper)
     {
+        _config = config;
         _sqlHelper = sqlHelper;
-        _metadataContext = metadataContext;
     }
 
     public async Task<IEnumerable<Purchase>> GetPurchases(string? description = null, string? category = null, DateTime? startDate = null, DateTime? endDate = null)
@@ -46,7 +44,7 @@ public class PurchasesContext : IPurchasesContext
             sqlParams.Add("endDate", endDate);
         }
 
-        return await _sqlHelper.QueryAsync<Purchase>(BUDGET_DB,
+        return await _sqlHelper.QueryAsync<Purchase>(_config["BudgetDatabaseName"],
 @$"SELECT
     PurchaseId,
     Date,
@@ -66,12 +64,7 @@ LEFT JOIN Category c
             throw new Exception("The category is null. You can only add a purchase with a category.");
         }
 
-        if (!await _metadataContext.DoesCategoryExist(purchase.Category))
-        {
-            throw new Exception($"The category {purchase.Category} does not exist.");
-        }
-
-        await _sqlHelper.ExecuteAsync(BUDGET_DB,
+        await _sqlHelper.ExecuteAsync(_config["BudgetDatabaseName"],
 $@"INSERT INTO Purchase
 (
     Date,

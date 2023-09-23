@@ -1,12 +1,12 @@
-﻿using GrpcService.Interfaces;
+﻿using Backend.Interfaces;
 
-namespace GrpcService.Implementations;
+namespace Backend.Implementations;
 
 public class StandardConnectionStringBuilder : ISqlConnectionStringBuilder
 {
-    private string _username;
-    private string _password;
-    private string _serverName;
+    private readonly string _username;
+    private readonly string _password;
+    private readonly string _serverName;
 
     public StandardConnectionStringBuilder(string username, string password, string serverName)
     {
@@ -17,6 +17,6 @@ public class StandardConnectionStringBuilder : ISqlConnectionStringBuilder
 
     public string GetConnectionString(string database)
     {
-        return $"Server={_serverName};Database={database};User Id={_username};Password={_password};TrustServerCertificate=True;Encrypt=False;";
+        return $"Server={_serverName};Database={database};User Id={_username};Password={_password};TrustServerCertificate=True";
     }
 }
