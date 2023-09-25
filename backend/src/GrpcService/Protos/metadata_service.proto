@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package budget_proto;
+
+service MetadataService {
+  rpc AddCategory (AddCategoryRequest) returns (AddCategoryResponse);
+  rpc DeleteCategory (DeleteCategoryRequest) returns (DeleteCategoryResponse);
+  rpc UpdateCategory (UpdateCategoryRequest) returns (UpdateCategoryResponse);
+  rpc GetCategories (GetCategoriesRequest) returns (GetCategoriesResponse);
+}
+
+message AddCategoryRequest {
+  string category = 1;
+}
+
+message AddCategoryResponse { }
+
+message DeleteCategoryRequest {
+  string category = 1;
+}
+
+message DeleteCategoryResponse { }
+
+message UpdateCategoryRequest {
+  string category = 1;
+  string update_to = 2;
+}
+
+message UpdateCategoryResponse { }
+
+message GetCategoriesRequest { }
+
+message GetCategoriesResponse {
+  repeated string categories = 1;
+}
