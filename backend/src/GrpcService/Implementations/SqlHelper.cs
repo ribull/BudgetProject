@@ -91,17 +91,17 @@ public class SqlHelper : ISqlHelper
         }
     }
 
-    public async Task<bool> Exists(string database, string sql)
+    public async Task<bool> ExistsAsync(string database, string sql)
     {
         return (await QueryAsync<int>(database, sql)).SingleOrDefault() != 0;
     }
 
-    public async Task<bool> Exists(string database, string sql, object sqlParams)
+    public async Task<bool> ExistsAsync(string database, string sql, object sqlParams)
     {
         return (await QueryAsync<int>(database, sql, sqlParams)).SingleOrDefault() != 0;
     }
 
-    public async Task<bool> Exists(string database, string sql, DynamicParameters sqlParams)
+    public async Task<bool> ExistsAsync(string database, string sql, DynamicParameters sqlParams)
     {
         return (await QueryAsync<int>(database, sql, sqlParams)).SingleOrDefault() != 0;
     }

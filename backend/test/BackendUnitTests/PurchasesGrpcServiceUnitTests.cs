@@ -70,7 +70,7 @@ public class PurchasesGrpcServiceUnitTests
             }
         };
 
-        _mockPurchasesContext.Setup(pc => pc.GetPurchases(description, category, startDate == null ? null : startDate, endDate == null ? null : endDate))
+        _mockPurchasesContext.Setup(pc => pc.GetPurchasesAsync(description, category, startDate == null ? null : startDate, endDate == null ? null : endDate))
             .ReturnsAsync(purchases);
 
         PurchasesGrpcService service = new PurchasesGrpcService(_mockPurchasesContext.Object, _mockMetadataContext.Object);
@@ -100,7 +100,7 @@ public class PurchasesGrpcServiceUnitTests
         GetPurchasesResponse response = await service.GetPurchases(request, null);
 
         // Assert
-        _mockPurchasesContext.Verify(pc => pc.GetPurchases(description, category, startDate == null ? null : startDate, endDate == null ? null : endDate), Times.Once);
+        _mockPurchasesContext.Verify(pc => pc.GetPurchasesAsync(description, category, startDate == null ? null : startDate, endDate == null ? null : endDate), Times.Once);
         Assert.That(response.Purchases, Is.EquivalentTo(purchases.Select(p => p.ToPurchaseProto())));
     }
 
@@ -113,7 +113,7 @@ public class PurchasesGrpcServiceUnitTests
         Timestamp date = Timestamp.FromDateTime(new DateTime(2023, 10, 1).ToUniversalTime());
         double amount = 123.45;
 
-        _mockMetadataContext.Setup(mc => mc.DoesCategoryExist(category))
+        _mockMetadataContext.Setup(mc => mc.DoesCategoryExistAsync(category))
             .ReturnsAsync(true);
 
         PurchasesGrpcService service = new PurchasesGrpcService(_mockPurchasesContext.Object, _mockMetadataContext.Object);
@@ -128,8 +128,8 @@ public class PurchasesGrpcServiceUnitTests
         }, null);
 
         // Assert
-        _mockMetadataContext.Verify(mc => mc.DoesCategoryExist(category), Times.Once);
-        _mockPurchasesContext.Verify(pc => pc.AddPurchase(new Domain.Models.Purchase
+        _mockMetadataContext.Verify(mc => mc.DoesCategoryExistAsync(category), Times.Once);
+        _mockPurchasesContext.Verify(pc => pc.AddPurchaseAsync(new Domain.Models.Purchase
         {
             Description = description,
             Category = category,
@@ -144,7 +144,7 @@ public class PurchasesGrpcServiceUnitTests
         // Arrange
         string category = "Category";
 
-        _mockMetadataContext.Setup(mc => mc.DoesCategoryExist(category))
+        _mockMetadataContext.Setup(mc => mc.DoesCategoryExistAsync(category))
             .ReturnsAsync(false);
 
         PurchasesGrpcService service = new PurchasesGrpcService(_mockPurchasesContext.Object, _mockMetadataContext.Object);
@@ -159,6 +159,6 @@ public class PurchasesGrpcServiceUnitTests
         }, null));
 
         Assert.That(ex.Status.StatusCode, Is.EqualTo(StatusCode.NotFound));
-        _mockMetadataContext.Verify(mc => mc.DoesCategoryExist(category), Times.Once);
+        _mockMetadataContext.Verify(mc => mc.DoesCategoryExistAsync(category), Times.Once);
     }
 }

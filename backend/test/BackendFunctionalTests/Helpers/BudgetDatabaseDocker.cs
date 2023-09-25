@@ -149,7 +149,7 @@ DROP DATABASE {DatabaseName}");
     {
         try
         {
-            return await _sqlHelper!.Exists("master", "SELECT 1 FROM sys.databases WHERE database_id = DB_ID('tempdb') AND [state] = 0");
+            return await _sqlHelper!.ExistsAsync("master", "SELECT 1 FROM sys.databases WHERE database_id = DB_ID('tempdb') AND [state] = 0");
         }
         catch (Exception)
         {

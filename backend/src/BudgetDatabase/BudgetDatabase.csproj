@@ -5,4 +5,8 @@
 	<SqlServerVersion>Sql150</SqlServerVersion>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Remove="Tables\PayHistory.sql" />
+  </ItemGroup>
+
 </Project>

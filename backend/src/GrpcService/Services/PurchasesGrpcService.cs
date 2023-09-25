@@ -18,7 +18,7 @@ public class PurchasesGrpcService : PurchasesService.PurchasesServiceBase
 
     public override async Task<GetPurchasesResponse> GetPurchases(GetPurchasesRequest request, ServerCallContext? context)
     {
-        IEnumerable<Domain.Models.Purchase> purchases = await _purchasesContext.GetPurchases(
+        IEnumerable<Domain.Models.Purchase> purchases = await _purchasesContext.GetPurchasesAsync(
                 description: request.Description,
                 category: request.Category,
                 startDate: request.StartTime?.ToDateTime(),
@@ -32,12 +32,12 @@ public class PurchasesGrpcService : PurchasesService.PurchasesServiceBase
 
     public override async Task<AddPurchaseResponse> AddPurchase(AddPurchaseRequest request, ServerCallContext? context)
     {
-        if (!await _metadataContext.DoesCategoryExist(request.Category))
+        if (!await _metadataContext.DoesCategoryExistAsync(request.Category))
         {
             throw new RpcException(new Status(StatusCode.NotFound, $"The category {request.Category} does not exist"));
         }
 
-        await _purchasesContext.AddPurchase(new Domain.Models.Purchase
+        await _purchasesContext.AddPurchaseAsync(new Domain.Models.Purchase
         {
             Date = request.Date.ToDateTime(),
             Description = request.Description,

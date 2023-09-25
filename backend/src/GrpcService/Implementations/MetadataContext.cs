@@ -13,27 +13,27 @@ public class MetadataContext : IMetadataContext
         _sqlHelper = sqlHelper;
     }
 
-    public async Task<bool> DoesCategoryExist(string category)
+    public async Task<bool> DoesCategoryExistAsync(string category)
     {
-        return await _sqlHelper.Exists(_config["BudgetDatabaseName"], "SELECT 1 FROM Category WHERE Category = @category", new { category });
+        return await _sqlHelper.ExistsAsync(_config["BudgetDatabaseName"], "SELECT 1 FROM Category WHERE Category = @category", new { category });
     }
 
-    public async Task AddCategory(string category)
+    public async Task AddCategoryAsync(string category)
     {
         await _sqlHelper.ExecuteAsync(_config["BudgetDatabaseName"], "INSERT INTO Category VALUES (@category)", new { category });
     }
 
-    public async Task DeleteCategory(string category)
+    public async Task DeleteCategoryAsync(string category)
     {
         await _sqlHelper.ExecuteAsync(_config["BudgetDatabaseName"], "DELETE FROM Category WHERE Category = @category", new { category });
     }
 
-    public async Task UpdateCategory(string category, string updateTo)
+    public async Task UpdateCategoryAsync(string category, string updateTo)
     {
         await _sqlHelper.ExecuteAsync(_config["BudgetDatabaseName"], "UPDATE Category SET Category = @updateTo WHERE Category = @category", new { category, updateTo });
     }
 
-    public async Task<IEnumerable<string>> GetCategories()
+    public async Task<IEnumerable<string>> GetCategoriesAsync()
     {
         return await _sqlHelper.QueryAsync<string>(_config["BudgetDatabaseName"], "SELECT Category FROM Category");
     }

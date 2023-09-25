@@ -33,7 +33,7 @@ public class MetadataGrpcServiceUnitTests
     {
         // Arrange
         string category = "Utilities";
-        _mockMetadataContext.Setup(mc => mc.DoesCategoryExist(category))
+        _mockMetadataContext.Setup(mc => mc.DoesCategoryExistAsync(category))
             .ReturnsAsync(false);
 
         MetadataGrpcService grpcService = new(_mockMetadataContext.Object);
@@ -42,8 +42,8 @@ public class MetadataGrpcServiceUnitTests
         await grpcService.AddCategory(new AddCategoryRequest { Category = category }, null);
 
         // Assert
-        _mockMetadataContext.Verify(mc => mc.AddCategory(category), Times.Once);
-        _mockMetadataContext.Verify(mc => mc.DoesCategoryExist(category), Times.Once);
+        _mockMetadataContext.Verify(mc => mc.AddCategoryAsync(category), Times.Once);
+        _mockMetadataContext.Verify(mc => mc.DoesCategoryExistAsync(category), Times.Once);
     }
 
     [Test]
@@ -51,7 +51,7 @@ public class MetadataGrpcServiceUnitTests
     {
         // Arrange
         string category = "Utilities";
-        _mockMetadataContext.Setup(mc => mc.DoesCategoryExist(category))
+        _mockMetadataContext.Setup(mc => mc.DoesCategoryExistAsync(category))
             .ReturnsAsync(true);
 
         MetadataGrpcService grpcService = new(_mockMetadataContext.Object);
@@ -59,7 +59,7 @@ public class MetadataGrpcServiceUnitTests
         // Act + Assert
         RpcException ex = Assert.ThrowsAsync<RpcException>(async () => await grpcService.AddCategory(new AddCategoryRequest { Category = category }, null));
         Assert.That(ex.StatusCode, Is.EqualTo(StatusCode.AlreadyExists));
-        _mockMetadataContext.Verify(mc => mc.DoesCategoryExist(category), Times.Once);
+        _mockMetadataContext.Verify(mc => mc.DoesCategoryExistAsync(category), Times.Once);
     }
 
     [Test]
@@ -67,7 +67,7 @@ public class MetadataGrpcServiceUnitTests
     {
         // Arrange
         string category = "Utilities";
-        _mockMetadataContext.Setup(mc => mc.DoesCategoryExist(category))
+        _mockMetadataContext.Setup(mc => mc.DoesCategoryExistAsync(category))
             .ReturnsAsync(true);
 
         MetadataGrpcService grpcService = new(_mockMetadataContext.Object);
@@ -76,8 +76,8 @@ public class MetadataGrpcServiceUnitTests
         await grpcService.DeleteCategory(new DeleteCategoryRequest { Category = category }, null);
 
         // Assert
-        _mockMetadataContext.Verify(mc => mc.DeleteCategory(category), Times.Once);
-        _mockMetadataContext.Verify(mc => mc.DoesCategoryExist(category), Times.Once);
+        _mockMetadataContext.Verify(mc => mc.DeleteCategoryAsync(category), Times.Once);
+        _mockMetadataContext.Verify(mc => mc.DoesCategoryExistAsync(category), Times.Once);
     }
 
     [Test]
@@ -85,7 +85,7 @@ public class MetadataGrpcServiceUnitTests
     {
         // Arrange
         string category = "Utilities";
-        _mockMetadataContext.Setup(mc => mc.DoesCategoryExist(category))
+        _mockMetadataContext.Setup(mc => mc.DoesCategoryExistAsync(category))
             .ReturnsAsync(false);
 
         MetadataGrpcService grpcService = new(_mockMetadataContext.Object);
@@ -93,7 +93,7 @@ public class MetadataGrpcServiceUnitTests
         // Act + Assert
         RpcException ex = Assert.ThrowsAsync<RpcException>(async () => await grpcService.DeleteCategory(new DeleteCategoryRequest { Category = category }, null));
         Assert.That(ex.StatusCode, Is.EqualTo(StatusCode.NotFound));
-        _mockMetadataContext.Verify(mc => mc.DoesCategoryExist(category), Times.Once);
+        _mockMetadataContext.Verify(mc => mc.DoesCategoryExistAsync(category), Times.Once);
     }
 
     [Test]
@@ -102,10 +102,10 @@ public class MetadataGrpcServiceUnitTests
         // Arrange
         string category = "Utilities";
         string updateTo = "UpdateTo";
-        _mockMetadataContext.Setup(mc => mc.DoesCategoryExist(category))
+        _mockMetadataContext.Setup(mc => mc.DoesCategoryExistAsync(category))
             .ReturnsAsync(true);
 
-        _mockMetadataContext.Setup(mc => mc.DoesCategoryExist(updateTo))
+        _mockMetadataContext.Setup(mc => mc.DoesCategoryExistAsync(updateTo))
             .ReturnsAsync(false);
 
         MetadataGrpcService grpcService = new(_mockMetadataContext.Object);
@@ -114,9 +114,9 @@ public class MetadataGrpcServiceUnitTests
         await grpcService.UpdateCategory(new UpdateCategoryRequest { Category = category, UpdateTo = updateTo }, null);
 
         // Assert
-        _mockMetadataContext.Verify(mc => mc.UpdateCategory(category, updateTo), Times.Once);
-        _mockMetadataContext.Verify(mc => mc.DoesCategoryExist(category), Times.Once);
-        _mockMetadataContext.Verify(mc => mc.DoesCategoryExist(updateTo), Times.Once);
+        _mockMetadataContext.Verify(mc => mc.UpdateCategoryAsync(category, updateTo), Times.Once);
+        _mockMetadataContext.Verify(mc => mc.DoesCategoryExistAsync(category), Times.Once);
+        _mockMetadataContext.Verify(mc => mc.DoesCategoryExistAsync(updateTo), Times.Once);
     }
 
     [Test]
@@ -124,7 +124,7 @@ public class MetadataGrpcServiceUnitTests
     {
         // Arrange
         string category = "Utilities";
-        _mockMetadataContext.Setup(mc => mc.DoesCategoryExist(category))
+        _mockMetadataContext.Setup(mc => mc.DoesCategoryExistAsync(category))
             .ReturnsAsync(false);
 
         MetadataGrpcService grpcService = new(_mockMetadataContext.Object);
@@ -132,7 +132,7 @@ public class MetadataGrpcServiceUnitTests
         // Act + Assert
         RpcException ex = Assert.ThrowsAsync<RpcException>(async () => await grpcService.UpdateCategory(new UpdateCategoryRequest { Category = category, UpdateTo = "Irrelevant" }, null));
         Assert.That(ex.StatusCode, Is.EqualTo(StatusCode.NotFound));
-        _mockMetadataContext.Verify(mc => mc.DoesCategoryExist(category), Times.Once);
+        _mockMetadataContext.Verify(mc => mc.DoesCategoryExistAsync(category), Times.Once);
     }
 
     [Test]
@@ -141,10 +141,10 @@ public class MetadataGrpcServiceUnitTests
         // Arrange
         string category = "Utilities";
         string updateTo = "UpdateTo";
-        _mockMetadataContext.Setup(mc => mc.DoesCategoryExist(category))
+        _mockMetadataContext.Setup(mc => mc.DoesCategoryExistAsync(category))
             .ReturnsAsync(true);
 
-        _mockMetadataContext.Setup(mc => mc.DoesCategoryExist(updateTo))
+        _mockMetadataContext.Setup(mc => mc.DoesCategoryExistAsync(updateTo))
             .ReturnsAsync(true);
 
         MetadataGrpcService grpcService = new(_mockMetadataContext.Object);
@@ -152,8 +152,8 @@ public class MetadataGrpcServiceUnitTests
         // Act + Assert
         RpcException ex = Assert.ThrowsAsync<RpcException>(async () => await grpcService.UpdateCategory(new UpdateCategoryRequest { Category = category, UpdateTo = updateTo }, null));
         Assert.That(ex.StatusCode, Is.EqualTo(StatusCode.AlreadyExists));
-        _mockMetadataContext.Verify(mc => mc.DoesCategoryExist(category), Times.Once);
-        _mockMetadataContext.Verify(mc => mc.DoesCategoryExist(updateTo), Times.Once);
+        _mockMetadataContext.Verify(mc => mc.DoesCategoryExistAsync(category), Times.Once);
+        _mockMetadataContext.Verify(mc => mc.DoesCategoryExistAsync(updateTo), Times.Once);
     }
 
     [Test]
@@ -171,7 +171,7 @@ public class MetadataGrpcServiceUnitTests
             "AYEEEEEEEEEEeeee"
         };
 
-        _mockMetadataContext.Setup(mc => mc.GetCategories())
+        _mockMetadataContext.Setup(mc => mc.GetCategoriesAsync())
             .ReturnsAsync(categories);
 
         MetadataGrpcService metadataGrpcService = new(_mockMetadataContext.Object);
@@ -180,7 +180,7 @@ public class MetadataGrpcServiceUnitTests
         GetCategoriesResponse response = await metadataGrpcService.GetCategories(new GetCategoriesRequest(), null);
 
         // Assert
-        _mockMetadataContext.Verify(mc => mc.GetCategories(), Times.Once);
+        _mockMetadataContext.Verify(mc => mc.GetCategoriesAsync(), Times.Once);
         Assert.That(response.Categories, Is.EquivalentTo(categories));
     }
 }

@@ -2,13 +2,13 @@
 
 public interface IMetadataContext
 {
-    Task<bool> DoesCategoryExist(string category);
+    Task<bool> DoesCategoryExistAsync(string category);
 
-    Task AddCategory(string category);
+    Task AddCategoryAsync(string category);
 
-    Task DeleteCategory(string category);
+    Task DeleteCategoryAsync(string category);
 
-    Task UpdateCategory(string category, string updateTo);
+    Task UpdateCategoryAsync(string category, string updateTo);
 
-    Task<IEnumerable<string>> GetCategories();
+    Task<IEnumerable<string>> GetCategoriesAsync();
 }

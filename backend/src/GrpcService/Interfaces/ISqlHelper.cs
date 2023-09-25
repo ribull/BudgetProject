@@ -28,9 +28,9 @@ public interface ISqlHelper
 
     Task<int> ExecuteAsync(string database, string sql, DynamicParameters sqlParams);
 
-    Task<bool> Exists(string database, string sql);
+    Task<bool> ExistsAsync(string database, string sql);
 
-    Task<bool> Exists(string database, string sql, object sqlParams);
+    Task<bool> ExistsAsync(string database, string sql, object sqlParams);
 
-    Task<bool> Exists(string database, string sql, DynamicParameters sqlParams);
+    Task<bool> ExistsAsync(string database, string sql, DynamicParameters sqlParams);
 }

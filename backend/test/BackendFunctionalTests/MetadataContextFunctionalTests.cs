@@ -57,10 +57,10 @@ public class MetadataContextFunctionalTests
         string category = "Utilities";
 
         // Act
-        await _metadataContext.AddCategory(category);
+        await _metadataContext.AddCategoryAsync(category);
 
         // Assert
-        Assert.That(await _sqlHelper.Exists(_budgetDatabaseDocker.DatabaseName, "SELECT 1 FROM Category WHERE Category = 'Utilities'"));
+        Assert.That(await _sqlHelper.ExistsAsync(_budgetDatabaseDocker.DatabaseName, "SELECT 1 FROM Category WHERE Category = 'Utilities'"));
     }
 
     [Test]
@@ -89,14 +89,14 @@ SET IDENTITY_INSERT Category OFF;");
         await _sqlHelper.ExecuteAsync(_budgetDatabaseDocker.DatabaseName, $"INSERT INTO Purchase VALUES ('{new DateTime(2023, 9, 22)}', '{description}', 123.45, {categoryId})");
 
         // Sanity check
-        Assert.That(await _sqlHelper.Exists(_budgetDatabaseDocker.DatabaseName, $"SELECT 1 FROM Category WHERE Category = '{category}'"));
-        Assert.That(await _sqlHelper.Exists(_budgetDatabaseDocker.DatabaseName, $"SELECT 1 FROM Purchase WHERE Description = '{description}' AND CategoryId = {categoryId}"));
+        Assert.That(await _sqlHelper.ExistsAsync(_budgetDatabaseDocker.DatabaseName, $"SELECT 1 FROM Category WHERE Category = '{category}'"));
+        Assert.That(await _sqlHelper.ExistsAsync(_budgetDatabaseDocker.DatabaseName, $"SELECT 1 FROM Purchase WHERE Description = '{description}' AND CategoryId = {categoryId}"));
 
         // Act
-        await _metadataContext.DeleteCategory(category);
+        await _metadataContext.DeleteCategoryAsync(category);
 
         // Assert
-        Assert.That(await _sqlHelper.Exists(_budgetDatabaseDocker.DatabaseName, $"SELECT 1 FROM Category WHERE Category = '{category}'"), Is.False);
+        Assert.That(await _sqlHelper.ExistsAsync(_budgetDatabaseDocker.DatabaseName, $"SELECT 1 FROM Category WHERE Category = '{category}'"), Is.False);
         Assert.That((await _sqlHelper.QueryAsync<int?>(_budgetDatabaseDocker.DatabaseName, $"SELECT CategoryId FROM Purchase WHERE Description = '{description}'")).Single(), Is.Null);
     }
 
@@ -121,7 +121,7 @@ SET IDENTITY_INSERT Category OFF;");
         }
 
         // Act
-        IEnumerable<string> resultCategories = await _metadataContext.GetCategories();
+        IEnumerable<string> resultCategories = await _metadataContext.GetCategoriesAsync();
 
         // Assert
         Assert.That(resultCategories, Is.EquivalentTo(testCategories));
@@ -135,7 +135,7 @@ SET IDENTITY_INSERT Category OFF;");
         await _sqlHelper.ExecuteAsync(_budgetDatabaseDocker.DatabaseName, $"INSERT INTO Category VALUES ('{category}')");
 
         // Act + Assert
-        Assert.That(await _metadataContext.DoesCategoryExist(category), Is.True);
-        Assert.That(await _metadataContext.DoesCategoryExist("Does not exist category"), Is.False);
+        Assert.That(await _metadataContext.DoesCategoryExistAsync(category), Is.True);
+        Assert.That(await _metadataContext.DoesCategoryExistAsync("Does not exist category"), Is.False);
     }
 }

@@ -70,7 +70,7 @@ public class PurchasesContextFunctionalTests
         };
 
         // Act
-        await _purchasesContext.AddPurchase(testPurchase);
+        await _purchasesContext.AddPurchaseAsync(testPurchase);
 
         // Assert
         Assert.That((await _sqlHelper.QueryAsync<int>(_budgetDatabaseDocker.DatabaseName,
@@ -150,22 +150,22 @@ WHERE
         }
 
         // Act + Assert
-        IEnumerable<Purchase> allPurchases = await _purchasesContext.GetPurchases();
+        IEnumerable<Purchase> allPurchases = await _purchasesContext.GetPurchasesAsync();
         Assert.That(allPurchases, Is.EquivalentTo(testPurchases));
 
-        IEnumerable<Purchase> utilitiesPurchases = await _purchasesContext.GetPurchases(category: "Utilities");
+        IEnumerable<Purchase> utilitiesPurchases = await _purchasesContext.GetPurchasesAsync(category: "Utilities");
         Assert.That(utilitiesPurchases, Is.EquivalentTo(testPurchases.Where(tp => tp.Category == "Utilities")));
 
-        IEnumerable<Purchase> dateAfterPurchases = await _purchasesContext.GetPurchases(startDate: new DateTime(2023, 10, 1));
+        IEnumerable<Purchase> dateAfterPurchases = await _purchasesContext.GetPurchasesAsync(startDate: new DateTime(2023, 10, 1));
         Assert.That(dateAfterPurchases, Is.EquivalentTo(testPurchases.Where(tp => tp.Date >= new DateTime(2023, 10, 1))));
 
-        IEnumerable<Purchase> dateBeforePurchases = await _purchasesContext.GetPurchases(endDate: new DateTime(2023, 10, 1));
+        IEnumerable<Purchase> dateBeforePurchases = await _purchasesContext.GetPurchasesAsync(endDate: new DateTime(2023, 10, 1));
         Assert.That(dateBeforePurchases, Is.EquivalentTo(testPurchases.Where(tp => tp.Date <= new DateTime(2023, 10, 1))));
 
-        IEnumerable<Purchase> descriptionPurchases = await _purchasesContext.GetPurchases(description: "TestDescriptionX");
+        IEnumerable<Purchase> descriptionPurchases = await _purchasesContext.GetPurchasesAsync(description: "TestDescriptionX");
         Assert.That(descriptionPurchases, Is.EquivalentTo(testPurchases.Where(tp => tp.Description == "TestDescriptionX")));
 
-        IEnumerable<Purchase> specificPurchase = await _purchasesContext.GetPurchases(description: "TestDescriptionX", category: "Utilities", startDate: new DateTime(2023, 10, 17), endDate: new DateTime(2023, 10, 17));
+        IEnumerable<Purchase> specificPurchase = await _purchasesContext.GetPurchasesAsync(description: "TestDescriptionX", category: "Utilities", startDate: new DateTime(2023, 10, 17), endDate: new DateTime(2023, 10, 17));
         Assert.That(specificPurchase, Is.EquivalentTo(testPurchases.Where(tp => tp.Description == "TestDescriptionX" && tp.Category == "Utilities" && tp.Date == new DateTime(2023, 10, 17))));
     }
 
@@ -191,7 +191,7 @@ VALUES
 )");
 
         // Act
-        IEnumerable<Purchase> purchases = await _purchasesContext.GetPurchases();
+        IEnumerable<Purchase> purchases = await _purchasesContext.GetPurchasesAsync();
 
         // Assert
         Assert.That(purchases.Single().Category, Is.Null);

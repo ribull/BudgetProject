@@ -15,7 +15,7 @@ public class PurchasesContext : IPurchasesContext
         _sqlHelper = sqlHelper;
     }
 
-    public async Task<IEnumerable<Purchase>> GetPurchases(string? description = null, string? category = null, DateTime? startDate = null, DateTime? endDate = null)
+    public async Task<IEnumerable<Purchase>> GetPurchasesAsync(string? description = null, string? category = null, DateTime? startDate = null, DateTime? endDate = null)
     {
         List<string> wheres = new();
         DynamicParameters sqlParams = new();
@@ -57,7 +57,7 @@ LEFT JOIN Category c
 {(wheres.Any() ? $"WHERE {string.Join(" AND ", wheres)}" : string.Empty)}", sqlParams);
     }
 
-    public async Task AddPurchase(Purchase purchase)
+    public async Task AddPurchaseAsync(Purchase purchase)
     {
         if (purchase.Category is null)
         {
