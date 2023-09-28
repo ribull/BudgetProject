@@ -5,9 +5,13 @@ import "google/protobuf/wrappers.proto";
 
 package budget_proto;
 
-service PurchasesService {
+service BudgetService {
   rpc GetPurchases (GetPurchasesRequest) returns (GetPurchasesResponse);
   rpc AddPurchase (AddPurchaseRequest) returns (AddPurchaseResponse);
+  rpc AddCategory (AddCategoryRequest) returns (AddCategoryResponse);
+  rpc DeleteCategory (DeleteCategoryRequest) returns (DeleteCategoryResponse);
+  rpc UpdateCategory (UpdateCategoryRequest) returns (UpdateCategoryResponse);
+  rpc GetCategories (GetCategoriesRequest) returns (GetCategoriesResponse);
 }
 
 message GetPurchasesRequest {
@@ -36,4 +40,29 @@ message Purchase {
   string description = 3;
   double amount = 4;
   string category = 5;
+}
+
+message AddCategoryRequest {
+  string category = 1;
+}
+
+message AddCategoryResponse { }
+
+message DeleteCategoryRequest {
+  string category = 1;
+}
+
+message DeleteCategoryResponse { }
+
+message UpdateCategoryRequest {
+  string category = 1;
+  string update_to = 2;
+}
+
+message UpdateCategoryResponse { }
+
+message GetCategoriesRequest { }
+
+message GetCategoriesResponse {
+  repeated string categories = 1;
 }

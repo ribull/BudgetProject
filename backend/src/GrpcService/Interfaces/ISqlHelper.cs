@@ -1,4 +1,8 @@
 ﻿using Dapper;
+using Microsoft.Data.SqlClient;
+using System.Data;
+using System.Data.Common;
+using System.Transactions;
 
 namespace Backend.Interfaces;
 
@@ -33,4 +37,6 @@ public interface ISqlHelper
     Task<bool> ExistsAsync(string database, string sql, object sqlParams);
 
     Task<bool> ExistsAsync(string database, string sql, DynamicParameters sqlParams);
+
+    IDbConnection GetSqlConnection(string database);
 }

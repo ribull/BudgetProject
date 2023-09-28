@@ -1,6 +1,7 @@
 ﻿using Dapper;
 using Backend.Interfaces;
 using Microsoft.Data.SqlClient;
+using System.Data;
 
 namespace Backend.Implementations;
 
@@ -104,5 +105,10 @@ public class SqlHelper : ISqlHelper
     public async Task<bool> ExistsAsync(string database, string sql, DynamicParameters sqlParams)
     {
         return (await QueryAsync<int>(database, sql, sqlParams)).SingleOrDefault() != 0;
+    }
+
+    public IDbConnection GetSqlConnection(string database)
+    {
+        return new SqlConnection(_connectionStringBuilder.GetConnectionString(database));
     }
 }

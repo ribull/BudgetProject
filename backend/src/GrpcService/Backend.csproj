@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="CsvHelper" Version="30.0.1" />
     <PackageReference Include="Dapper" Version="2.0.151" />
     <PackageReference Include="Grpc.AspNetCore" Version="2.40.0" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.1" />
@@ -19,5 +20,9 @@
 
   <ItemGroup>
     <Protobuf Include="Protos\*.proto" GrpcServices="Server" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Protos\budget_service.proto" />
   </ItemGroup>
 </Project>
