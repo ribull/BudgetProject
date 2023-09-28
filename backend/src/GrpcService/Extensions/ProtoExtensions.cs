@@ -8,11 +8,25 @@ public static class ProtoExtensions
 	{
 		return new BudgetProto.Purchase
 		{
-			Id = purchase.PurchaseId,
+			PurchaseId = purchase.PurchaseId,
 			Date = purchase.Date.ToUniversalTime().ToTimestamp(),
 			Description = purchase.Description,
 			Amount = purchase.Amount,
 			Category = purchase.Category
 		};
+    }
+
+    public static BudgetProto.PayHistory ToPayHistoryProto(this Domain.Models.PayHistory payHistory)
+    {
+        return new BudgetProto.PayHistory
+        {
+			PayHistoryId = payHistory.PayHistoryId,
+			PayPeriodStartDate = payHistory.PayPeriodStartDate.ToUniversalTime().ToTimestamp(),
+			PayPeriodEndDate = payHistory.PayPeriodEndDate.ToUniversalTime().ToTimestamp(),
+			Earnings = payHistory.Earnings,
+			PreTaxDeductions = payHistory.PreTaxDeductions,
+			Taxes = payHistory.Taxes,
+			PostTaxDeductions = payHistory.PostTaxDeductions
+        };
     }
 }

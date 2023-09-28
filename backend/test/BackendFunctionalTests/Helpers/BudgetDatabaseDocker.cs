@@ -58,11 +58,7 @@ public class BudgetDatabaseDocker : IAsyncDisposable
         {
             foreach (string containerName in containerListResponse.Names)
             {
-                TestContext.Progress.WriteLine(containerName);
-                if (containerName.StartsWith(_containerBaseName))
-                {
-                    servernum++;
-                }
+                servernum++;
             }
         }
 
