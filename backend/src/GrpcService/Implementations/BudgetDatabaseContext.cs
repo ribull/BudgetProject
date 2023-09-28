@@ -175,9 +175,27 @@ VALUES
 
     public async Task AddPayHistoriesAsync(IEnumerable<PayHistory> payHistories)
     {
-        foreach (PayHistory payHistory in payHistories)
+        using (TransactionScope scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
         {
-            await AddPayHistoryAsync(payHistory);
+            foreach (PayHistory payHistory in payHistories)
+            {
+                await AddPayHistoryAsync(payHistory);
+            }
+
+            scope.Complete();
+        }
+    }
+
+    public async Task AddPayHistoriesAsync(IAsyncEnumerable<PayHistory> payHistories)
+    {
+        using (TransactionScope scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+        {
+            await foreach (PayHistory payHistory in payHistories)
+            {
+                await AddPayHistoryAsync(payHistory);
+            }
+
+            scope.Complete();
         }
     }
 

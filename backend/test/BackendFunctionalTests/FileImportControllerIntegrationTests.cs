@@ -126,6 +126,70 @@ public class FileImportControllerIntegrationTests
         Assert.That(await _budgetDatabaseContext.GetPurchasesAsync(), Is.EquivalentTo(testPurchases));
     }
 
+    [Test]
+    public async Task ImportPayHistoryFromWorkdayCsvIntegrationTest()
+    {
+        // Arrange
+        List<PayHistory> payHistories = new()
+        {
+            new PayHistory
+            {
+                PayHistoryId = 1,
+                PayPeriodStartDate = new DateTime(2023, 10, 1),
+                PayPeriodEndDate = new DateTime(2023, 10, 15),
+                Earnings = 1234.56,
+                PreTaxDeductions = 789.01,
+                Taxes = 23.45,
+                PostTaxDeductions = 6.78
+            },
+            new PayHistory
+            {
+                PayHistoryId = 2,
+                PayPeriodStartDate = new DateTime(2023, 10, 16),
+                PayPeriodEndDate = new DateTime(2023, 10, 31),
+                Earnings = 1234.56,
+                PreTaxDeductions = 789.01,
+                Taxes = 23.45,
+                PostTaxDeductions = 6.78
+            },
+            new PayHistory
+            {
+                PayHistoryId = 3,
+                PayPeriodStartDate = new DateTime(2023, 10, 1),
+                PayPeriodEndDate = new DateTime(2023, 10, 31),
+                Earnings = 9999.99,
+                PreTaxDeductions = 888.88,
+                Taxes = 77.77,
+                PostTaxDeductions = 6.66
+            },
+            new PayHistory
+            {
+                PayHistoryId = 4,
+                PayPeriodStartDate = new DateTime(2023, 10, 1),
+                PayPeriodEndDate = new DateTime(2023, 10, 31),
+                Earnings = 9999.99,
+                PreTaxDeductions = 0.0,
+                Taxes = 33.33,
+                PostTaxDeductions = 0.0
+            }
+        };
+
+        StringBuilder stringBuilder = new("Period,Earnings,Pre Tax Deductions,Employee Taxes,Post Tax Deductions,Net Pay\n");
+        foreach (PayHistory payHistory in payHistories)
+        {
+            stringBuilder.AppendLine(ToWorkdayPayHistoryCsvLine(payHistory));
+        }
+
+        byte[] fileBytes = Encoding.UTF8.GetBytes(stringBuilder.ToString());
+
+        // Act
+        ActionResult result = await new FileImportController(_budgetDatabaseContext).ImportPayHistoryFromWorkdayCsv(new FormFile(new MemoryStream(fileBytes), 0, fileBytes.Length, "Data", "input.csv"));
+
+        // Assert
+        Assert.That(result, Is.InstanceOf<OkResult>());
+        Assert.That(await _budgetDatabaseContext.GetPayHistoriesAsync(), Is.EquivalentTo(payHistories));
+    }
+
     private string ToCsvString<T>(List<T> objects, List<string> properties, bool date = true)
     {
         StringBuilder stringBuilder = new(string.Join(',', properties) + "\n");
@@ -164,7 +228,19 @@ public class FileImportControllerIntegrationTests
             stringBuilder.AppendLine(string.Join(',', values));
         }
 
-        Console.WriteLine(stringBuilder.ToString());
         return stringBuilder.ToString();
+    }
+
+    private string ToWorkdayPayHistoryCsvLine(PayHistory payHistory)
+    {
+        return string.Join(',', new List<string>
+        {
+            $"{payHistory.PayPeriodStartDate.ToString("MM/dd/yyyy")} - {payHistory.PayPeriodEndDate.ToString("MM/dd/yyyy")} (US Salary)",
+            $@"""{string.Format("{0:C}", payHistory.Earnings)} """,
+            $@"""{string.Format("{0:C}", payHistory.PreTaxDeductions)} """,
+            $@"""{string.Format("{0:C}", payHistory.Taxes)} """,
+            $@"""{string.Format("{0:C}", payHistory.PostTaxDeductions)} """,
+            $@"""{string.Format("{0:C}", payHistory.NetPay)} """
+        });
     }
 }

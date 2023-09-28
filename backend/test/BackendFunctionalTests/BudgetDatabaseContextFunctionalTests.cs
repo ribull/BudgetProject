@@ -482,6 +482,52 @@ WHERE
     }
 
     [Test]
+    public async Task AddAsyncPayHistoriesTest()
+    {
+        // Arrange
+        async IAsyncEnumerable<PayHistory> GetAsyncPayHistories()
+        {
+            yield return new PayHistory()
+            {
+                PayPeriodStartDate = new DateTime(2023, 10, 1),
+                PayPeriodEndDate = new DateTime(2023, 10, 15),
+                Earnings = 12345.67,
+                PreTaxDeductions = 9876.54,
+                Taxes = 321.09,
+                PostTaxDeductions = 87.65
+            };
+
+            yield return new PayHistory()
+            {
+                PayPeriodStartDate = new DateTime(2023, 10, 1),
+                PayPeriodEndDate = new DateTime(2023, 10, 15),
+                Earnings = 1234.56,
+                PreTaxDeductions = 789.01,
+                Taxes = 23.45,
+                PostTaxDeductions = 67.89
+            };
+
+            yield return new PayHistory()
+            {
+                PayPeriodStartDate = new DateTime(2023, 10, 15),
+                PayPeriodEndDate = new DateTime(2023, 10, 31),
+                Earnings = 12345.67,
+                PreTaxDeductions = 9876.54,
+                Taxes = 321.09,
+                PostTaxDeductions = 87.65
+            };
+
+            await Task.CompletedTask;
+        };
+
+        // Act
+        await _budgetDatabaseContext.AddPayHistoriesAsync(GetAsyncPayHistories());
+
+        // Assert
+        Assert.That((await _sqlHelper.QueryAsync<int>(_budgetDatabaseDocker.DatabaseName, "SELECT COUNT(*) FROM PayHistory")).Single(), Is.EqualTo(3));
+    }
+
+    [Test]
     [TestCase("10/1/2023", "11/16/2023")]
     [TestCase("8/1/2023", "10/16/2023")]
     [TestCase(null, "10/16/2023")]
