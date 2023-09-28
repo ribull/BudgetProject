@@ -36,6 +36,10 @@ public interface IBudgetDatabaseContext
 
     Task AddPayHistoriesAsync(IAsyncEnumerable<PayHistory> payHistories);
 
+    Task<bool> DoesPayHistoryExistAsync(int purchaseId);
+
+    Task DeletePayHistoryAsync(int purchaseId);
+
     Task<IEnumerable<PayHistory>> GetPayHistoriesAsync(DateTime? startDate = null, DateTime? endDate = null);
 
     Task<IEnumerable<PayHistory>> GetPayHistoriesForMonthAsync(DateTime month);

@@ -17,10 +17,10 @@ public class BudgetGrpcService : BudgetService.BudgetServiceBase
     public override async Task<GetPurchasesResponse> GetPurchases(GetPurchasesRequest request, ServerCallContext? context)
     {
         IEnumerable<Domain.Models.Purchase> purchases = await _budgetDatabaseContext.GetPurchasesAsync(
-                description: request.Description,
-                category: request.Category,
-                startDate: request.StartTime?.ToDateTime(),
-                endDate: request.EndTime?.ToDateTime());
+            description: request.Description,
+            category: request.Category,
+            startDate: request.StartTime?.ToDateTime(),
+            endDate: request.EndTime?.ToDateTime());
 
         GetPurchasesResponse response = new();
         response.Purchases.Add(purchases.Select(p => p.ToPurchaseProto()));
@@ -88,6 +88,53 @@ public class BudgetGrpcService : BudgetService.BudgetServiceBase
     {
         GetCategoriesResponse response = new();
         response.Categories.Add(await _budgetDatabaseContext.GetCategoriesAsync());
+
+        return response;
+    }
+
+    public override async Task<AddPayHistoryResponse> AddPayHistory(AddPayHistoryRequest request, ServerCallContext? context)
+    {
+        await _budgetDatabaseContext.AddPayHistoryAsync(new Domain.Models.PayHistory
+        {
+            PayPeriodStartDate = request.PayPeriodStartDate.ToDateTime(),
+            PayPeriodEndDate = request.PayPeriodEndDate.ToDateTime(),
+            Earnings = request.Earnings,
+            PreTaxDeductions = request.PreTaxDeductions,
+            Taxes = request.Taxes,
+            PostTaxDeductions = request.PostTaxDeductions
+        });
+
+        return new AddPayHistoryResponse();
+    }
+
+    public override async Task<DeletePayHistoryResponse> DeletePayHistory(DeletePayHistoryRequest request, ServerCallContext? context)
+    {
+        if (!await _budgetDatabaseContext.DoesPayHistoryExistAsync(request.PayHistoryId))
+        {
+            throw new RpcException(new Status(StatusCode.NotFound, $"The pay history with id {request.PayHistoryId} does not exist."));
+        }
+
+        await _budgetDatabaseContext.DeletePayHistoryAsync(request.PayHistoryId);
+
+        return new DeletePayHistoryResponse();
+    }
+
+    public override async Task<GetPayHistoriesResponse> GetPayHistories(GetPayHistoriesRequest request, ServerCallContext? context)
+    {
+        IEnumerable<Domain.Models.PayHistory> payHistories = await _budgetDatabaseContext.GetPayHistoriesAsync(request.StartTime?.ToDateTime(), request.EndTime?.ToDateTime());
+        
+        GetPayHistoriesResponse response = new();
+        response.PayHistories.Add(payHistories.Select(ph => ph.ToPayHistoryProto()));
+
+        return response;
+    }
+
+    public override async Task<GetPayHistoriesForMonthResponse> GetPayHistoriesForMonth(GetPayHistoriesForMonthRequest request, ServerCallContext? context)
+    {
+        IEnumerable<Domain.Models.PayHistory> payHistories = await _budgetDatabaseContext.GetPayHistoriesForMonthAsync(request.Month.ToDateTime());
+        
+        GetPayHistoriesForMonthResponse response = new();
+        response.PayHistories.Add(payHistories.Select(ph => ph.ToPayHistoryProto()));
 
         return response;
     }

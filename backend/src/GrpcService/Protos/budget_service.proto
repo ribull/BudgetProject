@@ -12,6 +12,10 @@ service BudgetService {
   rpc DeleteCategory (DeleteCategoryRequest) returns (DeleteCategoryResponse);
   rpc UpdateCategory (UpdateCategoryRequest) returns (UpdateCategoryResponse);
   rpc GetCategories (GetCategoriesRequest) returns (GetCategoriesResponse);
+  rpc AddPayHistory (AddPayHistoryRequest) returns (AddPayHistoryResponse);
+  rpc DeletePayHistory (DeletePayHistoryRequest) returns (DeletePayHistoryResponse);
+  rpc GetPayHistories (GetPayHistoriesRequest) returns (GetPayHistoriesResponse);
+  rpc GetPayHistoriesForMonth (GetPayHistoriesForMonthRequest) returns (GetPayHistoriesForMonthResponse);
 }
 
 message GetPurchasesRequest {
@@ -35,7 +39,7 @@ message AddPurchaseRequest {
 message AddPurchaseResponse { }
 
 message Purchase {
-  int32 id = 1;
+  int32 purchase_id = 1;
   google.protobuf.Timestamp date = 2;
   string description = 3;
   double amount = 4;
@@ -65,4 +69,48 @@ message GetCategoriesRequest { }
 
 message GetCategoriesResponse {
   repeated string categories = 1;
+}
+
+message AddPayHistoryRequest {
+  google.protobuf.Timestamp pay_period_start_date = 1;
+  google.protobuf.Timestamp pay_period_end_date = 2;
+  double earnings = 3;
+  double pre_tax_deductions = 4;
+  double taxes = 5;
+  double post_tax_deductions = 6;
+}
+
+message AddPayHistoryResponse { }
+
+message DeletePayHistoryRequest {
+  int32 pay_history_id = 1;
+}
+
+message DeletePayHistoryResponse { }
+
+message GetPayHistoriesRequest {
+  optional google.protobuf.Timestamp start_time = 1;
+  optional google.protobuf.Timestamp end_time = 2;
+}
+
+message GetPayHistoriesResponse {
+  repeated PayHistory pay_histories = 1;
+}
+
+message GetPayHistoriesForMonthRequest {
+  google.protobuf.Timestamp month = 1;
+}
+
+message GetPayHistoriesForMonthResponse {
+  repeated PayHistory pay_histories = 1;
+}
+
+message PayHistory {
+  int32 pay_history_id = 1;
+  google.protobuf.Timestamp pay_period_start_date = 2;
+  google.protobuf.Timestamp pay_period_end_date = 3;
+  double earnings = 4;
+  double pre_tax_deductions = 5;
+  double taxes = 6;
+  double post_tax_deductions = 7;
 }

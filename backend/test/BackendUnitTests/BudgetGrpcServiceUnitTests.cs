@@ -6,6 +6,7 @@ using Moq;
 using NUnit.Framework;
 using Backend.Extensions;
 using Google.Protobuf.WellKnownTypes;
+using System;
 
 namespace BackendUnitTests;
 
@@ -256,7 +257,7 @@ public class BudgetGrpcServiceUnitTests
         _mockBudgetDatabaseContext.Verify(pc => pc.GetPurchasesAsync(description, category, startDate == null ? null : startDate, endDate == null ? null : endDate), Times.Once);
         Assert.That(response.Purchases, Is.EquivalentTo(purchases.Select(p => p.ToPurchaseProto())));
     }
-
+    
     [Test]
     public async Task AddPurchaseTest()
     {
@@ -313,5 +314,175 @@ public class BudgetGrpcServiceUnitTests
 
         Assert.That(ex.Status.StatusCode, Is.EqualTo(StatusCode.NotFound));
         _mockBudgetDatabaseContext.Verify(mc => mc.DoesCategoryExistAsync(category), Times.Once);
+    }
+
+    [Test]
+    public async Task AddPayHistoryTest()
+    {
+        // Arrange
+        Timestamp startDate = Timestamp.FromDateTime(new DateTime(2023, 10, 1).ToUniversalTime());
+        Timestamp endDate = Timestamp.FromDateTime(new DateTime(2023, 10, 15).ToUniversalTime());
+        double earnings = 12345.67;
+        double preTaxDeductions = 891.23;
+        double taxes = 45.67;
+        double postTaxDeductions = 8.91;
+
+        BudgetGrpcService service = new BudgetGrpcService(_mockBudgetDatabaseContext.Object);
+
+        // Act
+        await service.AddPayHistory(new AddPayHistoryRequest
+        {
+            PayPeriodStartDate = startDate,
+            PayPeriodEndDate = endDate,
+            Earnings = earnings,
+            PreTaxDeductions = preTaxDeductions,
+            Taxes = taxes,
+            PostTaxDeductions = postTaxDeductions
+        }, null);
+
+        // Assert
+        _mockBudgetDatabaseContext.Verify(bdc => bdc.AddPayHistoryAsync(new Domain.Models.PayHistory
+        {
+            PayPeriodStartDate = startDate.ToDateTime(),
+            PayPeriodEndDate = endDate.ToDateTime(),
+            Earnings = earnings,
+            PreTaxDeductions = preTaxDeductions,
+            Taxes = taxes,
+            PostTaxDeductions = postTaxDeductions
+        }), Times.Once);
+    }
+
+    [Test]
+    public async Task DeletePayHistoryTest()
+    {
+        // Arrange
+        int payHistoryId = 1001;
+        _mockBudgetDatabaseContext.Setup(bdc => bdc.DoesPayHistoryExistAsync(payHistoryId))
+            .ReturnsAsync(true);
+
+        BudgetGrpcService service = new BudgetGrpcService(_mockBudgetDatabaseContext.Object);
+
+        // Act
+        await service.DeletePayHistory(new DeletePayHistoryRequest { PayHistoryId = payHistoryId }, null);
+
+        // Assert
+        _mockBudgetDatabaseContext.Verify(bdc => bdc.DoesPayHistoryExistAsync(payHistoryId), Times.Once);
+        _mockBudgetDatabaseContext.Verify(bdc => bdc.DeletePayHistoryAsync(payHistoryId), Times.Once);
+    }
+
+    [Test]
+    public void DeletePayHistoryDoesNotExistTest()
+    {
+        // Arrange
+        int payHistoryId = 1001;
+        _mockBudgetDatabaseContext.Setup(bdc => bdc.DoesPayHistoryExistAsync(payHistoryId))
+            .ReturnsAsync(false);
+
+        BudgetGrpcService service = new BudgetGrpcService(_mockBudgetDatabaseContext.Object);
+
+        // Act + Assert
+        RpcException ex = Assert.ThrowsAsync<RpcException>(async () => await service.DeletePayHistory(new DeletePayHistoryRequest { PayHistoryId = payHistoryId }, null));
+
+        _mockBudgetDatabaseContext.Verify(bdc => bdc.DoesPayHistoryExistAsync(payHistoryId), Times.Once);
+    }
+
+    [Test]
+    public async Task GetPayHistoriesAsync(
+        [Values("10/1/2023", null)] DateTime? startDate,
+        [Values("10/31/2023", null)] DateTime? endDate)
+    {
+        // Arrange
+        List<Domain.Models.PayHistory> payHistories = new()
+        {
+            new Domain.Models.PayHistory
+            {
+                PayPeriodStartDate = new DateTime(2023, 10, 1),
+                PayPeriodEndDate = new DateTime(2023, 10, 15),
+                Earnings = 1234.56,
+                PreTaxDeductions = 789.01,
+                Taxes = 23.45,
+                PostTaxDeductions = 67.89
+            },
+            new Domain.Models.PayHistory
+            {
+                PayPeriodStartDate = new DateTime(2023, 10, 15),
+                PayPeriodEndDate = new DateTime(2023, 10, 31),
+                Earnings = 1234.56,
+                PreTaxDeductions = 789.01,
+                Taxes = 23.45,
+                PostTaxDeductions = 67.89
+            },
+            new Domain.Models.PayHistory
+            {
+                PayPeriodStartDate = new DateTime(2023, 10, 1),
+                PayPeriodEndDate = new DateTime(2023, 10, 31),
+                Earnings = 1111.11,
+                PreTaxDeductions = 222.22,
+                Taxes = 333.33,
+                PostTaxDeductions = 44.44
+            },
+        };
+
+        _mockBudgetDatabaseContext.Setup(bdc => bdc.GetPayHistoriesAsync(startDate, endDate))
+            .ReturnsAsync(payHistories);
+
+        BudgetGrpcService service = new BudgetGrpcService(_mockBudgetDatabaseContext.Object);
+
+        // Act
+        GetPayHistoriesResponse response = await service.GetPayHistories(new GetPayHistoriesRequest { StartTime = startDate?.ToUniversalTime().ToTimestamp(), EndTime = endDate?.ToUniversalTime().ToTimestamp() }, null);
+
+        // Assert
+        Assert.That(response.PayHistories, Is.EquivalentTo(payHistories.Select(ph => ph.ToPayHistoryProto())));
+        _mockBudgetDatabaseContext.Verify(bdc => bdc.GetPayHistoriesAsync(startDate, endDate), Times.Once);
+    }
+
+    [Test]
+    public async Task GetPayHistoriesForMonthAsync()
+    {
+        // Arrange
+        DateTime month = new DateTime(2023, 10, 1);
+
+        List<Domain.Models.PayHistory> payHistories = new()
+        {
+            new Domain.Models.PayHistory
+            {
+                PayPeriodStartDate = new DateTime(2023, 10, 1),
+                PayPeriodEndDate = new DateTime(2023, 10, 15),
+                Earnings = 1234.56,
+                PreTaxDeductions = 789.01,
+                Taxes = 23.45,
+                PostTaxDeductions = 67.89
+            },
+            new Domain.Models.PayHistory
+            {
+                PayPeriodStartDate = new DateTime(2023, 10, 15),
+                PayPeriodEndDate = new DateTime(2023, 10, 31),
+                Earnings = 1234.56,
+                PreTaxDeductions = 789.01,
+                Taxes = 23.45,
+                PostTaxDeductions = 67.89
+            },
+            new Domain.Models.PayHistory
+            {
+                PayPeriodStartDate = new DateTime(2023, 10, 1),
+                PayPeriodEndDate = new DateTime(2023, 10, 31),
+                Earnings = 1111.11,
+                PreTaxDeductions = 222.22,
+                Taxes = 333.33,
+                PostTaxDeductions = 44.44
+            },
+        };
+
+        _mockBudgetDatabaseContext.Setup(bdc => bdc.GetPayHistoriesForMonthAsync(month))
+            .ReturnsAsync(payHistories);
+
+        BudgetGrpcService service = new BudgetGrpcService(_mockBudgetDatabaseContext.Object);
+
+        // Act
+        GetPayHistoriesForMonthResponse response = await service.GetPayHistoriesForMonth(new GetPayHistoriesForMonthRequest { Month = month.ToUniversalTime().ToTimestamp() }, null);
+
+        // Assert
+        Assert.That(response.PayHistories, Is.EquivalentTo(payHistories.Select(ph => ph.ToPayHistoryProto())));
+        _mockBudgetDatabaseContext.Verify(bdc => bdc.GetPayHistoriesForMonthAsync(month), Times.Once);
     }
 }

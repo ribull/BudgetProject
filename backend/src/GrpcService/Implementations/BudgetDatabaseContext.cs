@@ -2,9 +2,6 @@
 using Backend.Interfaces;
 using Dapper;
 using Domain.Models;
-using Microsoft.Data.SqlClient;
-using System.Data;
-using System.Data.Common;
 using System.Transactions;
 
 namespace Backend.Implementations;
@@ -197,6 +194,16 @@ VALUES
 
             scope.Complete();
         }
+    }
+
+    public async Task<bool> DoesPayHistoryExistAsync(int payHistoryId)
+    {
+        return await _sqlHelper.ExistsAsync(_budgetDatabaseName, "SELECT 1 FROM PayHistory WHERE PayHistoryId = @payHistoryId", new { payHistoryId = payHistoryId });
+    }
+
+    public async Task DeletePayHistoryAsync(int payHistoryId)
+    {
+        await _sqlHelper.ExecuteAsync(_budgetDatabaseName, "DELETE FROM PayHistory WHERE PayHistoryId = @payHistoryId", new { payHistoryId = payHistoryId });
     }
 
     public async Task<IEnumerable<PayHistory>> GetPayHistoriesAsync(DateTime? startDate = null, DateTime? endDate = null)

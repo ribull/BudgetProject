@@ -528,6 +528,53 @@ WHERE
     }
 
     [Test]
+    public async Task DoesPayHistoryExistTest()
+    {
+        // Arrange
+        int payHistoryId = 1001;
+        await InsertPayHistory(new PayHistory
+        {
+            PayHistoryId = payHistoryId,
+            PayPeriodStartDate = new DateTime(2023, 10, 1),
+            PayPeriodEndDate = new DateTime(2023, 10, 15),
+            Earnings = 12345.67,
+            PreTaxDeductions = 9876.54,
+            Taxes = 321.09,
+            PostTaxDeductions = 87.65
+        });
+
+        // Act + Assert
+        Assert.That(await _budgetDatabaseContext.DoesPayHistoryExistAsync(payHistoryId), Is.True);
+        Assert.That(await _budgetDatabaseContext.DoesPayHistoryExistAsync(1234), Is.False);
+    }
+
+    [Test]
+    public async Task DeletePayHistoryTest()
+    {
+        // Arrange
+        int payHistoryId = 1001;
+        await InsertPayHistory(new PayHistory
+        {
+            PayHistoryId = payHistoryId,
+            PayPeriodStartDate = new DateTime(2023, 10, 1),
+            PayPeriodEndDate = new DateTime(2023, 10, 15),
+            Earnings = 12345.67,
+            PreTaxDeductions = 9876.54,
+            Taxes = 321.09,
+            PostTaxDeductions = 87.65
+        });
+
+        // Sanity check
+        Assert.That(await _sqlHelper.ExistsAsync(_budgetDatabaseDocker.DatabaseName, $"SELECT 1 FROM PayHistory WHERE PayHistoryId = {payHistoryId}"), Is.True);
+
+        // Act
+        await _budgetDatabaseContext.DeletePayHistoryAsync(payHistoryId);
+
+        // Assert
+        Assert.That(await _sqlHelper.ExistsAsync(_budgetDatabaseDocker.DatabaseName, $"SELECT 1 FROM PayHistory WHERE PayHistoryId = {payHistoryId}"), Is.False);
+    }
+
+    [Test]
     [TestCase("10/1/2023", "11/16/2023")]
     [TestCase("8/1/2023", "10/16/2023")]
     [TestCase(null, "10/16/2023")]
