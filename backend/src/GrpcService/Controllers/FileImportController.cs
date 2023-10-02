@@ -23,7 +23,7 @@ public class FileImportController : ControllerBase
         _budgetDatabaseContext = budgetDatabaseContext;
     }
 
-    [HttpPost]
+    [HttpPost("importpurchasesfromcsv")]
     public async Task<ActionResult> ImportPurchasesFromCsv(IFormFile csvFile)
     {
         try
@@ -44,7 +44,7 @@ public class FileImportController : ControllerBase
         }
     }
 
-    [HttpPost]
+    [HttpPost("importpayhistoryfromworkdaycsv")]
     public async Task<ActionResult> ImportPayHistoryFromWorkdayCsv(IFormFile csvFile)
     {
         try
