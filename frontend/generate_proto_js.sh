@@ -6,5 +6,5 @@ if [ -d INPUT_DIR ]; then
 fi
 
 protoc -I=$INPUT_DIR budget_service.proto \
-    --js_out=import_style=commonjs,binary:$OUTPUT_DIR \
-    --grpc-web_out=import_style=typescript,mode=grpcweb:$OUTPUT_DIR
+    --plugin=./node_modules/.bin/protoc-gen-ts_proto \
+    --ts_proto_out=$OUTPUT_DIR
