@@ -1,34 +1,41 @@
 ﻿using Backend.Exceptions;
 using Backend.Implementations;
 using Backend.Interfaces;
-using BackendFunctionalTests.Helpers;
+using BudgetDatabase.Deployer;
 using Domain.Models;
 using Microsoft.Extensions.Configuration;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
+using Testcontainers.PostgreSql;
 
 namespace BackendFunctionalTests;
 
+[TestFixture]
 public class BudgetDatabaseContextFunctionalTests
 {
+    private ISqlConnectionStringBuilder _connectionStringBuilder;
     private ISqlHelper _sqlHelper;
     private IConfiguration _config;
-    private BudgetDatabaseDocker _budgetDatabaseDocker;
 
     private IBudgetDatabaseContext _budgetDatabaseContext;
+
+    private PostgreSqlContainer _postgreSqlContainer;
 
     [OneTimeSetUp]
     public async Task OneTimeSetUp()
     {
-        _budgetDatabaseDocker = new BudgetDatabaseDocker("budget-database-context-tests-sqlserver-", "BudgetDatabase");
-        await _budgetDatabaseDocker.StartContainer();
+        _postgreSqlContainer = new PostgreSqlBuilder()
+            .Build();
 
-        _sqlHelper = new SqlHelper(_budgetDatabaseDocker.ConnectionString!);
+        await _postgreSqlContainer.StartAsync();
+
+        _connectionStringBuilder = new UsernamePasswordPostgresConnectionStringBuilder("postgres", "postgres", _postgreSqlContainer.Hostname, _postgreSqlContainer.GetMappedPublicPort(5432));
+        _sqlHelper = new SqlHelper(_connectionStringBuilder);
 
         _config = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string>()
             {
-                { "BudgetDatabaseName", _budgetDatabaseDocker.DatabaseName }
+                { "BudgetDatabaseName", "budgetdb" }
             }).Build();
 
         _budgetDatabaseContext = new BudgetDatabaseContext(_config, _sqlHelper);
@@ -37,19 +44,19 @@ public class BudgetDatabaseContextFunctionalTests
     [OneTimeTearDown]
     public async Task OneTimeTearDown()
     {
-        await _budgetDatabaseDocker.DisposeAsync();
+        await _postgreSqlContainer.DisposeAsync();
     }
 
     [SetUp]
     public void Setup()
     {
-        _budgetDatabaseDocker.DeployBudgetDb();
+        DatabaseDeployer.DeployDatabase(_connectionStringBuilder.GetConnectionString(_config["BudgetDatabaseName"]));
     }
 
     [TearDown]
     public async Task TearDown()
     {
-        await _budgetDatabaseDocker.DropDb();
+        await _sqlHelper.ExecuteAsync("postgres", $"DROP DATABASE {_config["BudgetDatabaseName"]} WITH (FORCE)");
     }
 
     #region Category
@@ -64,7 +71,7 @@ public class BudgetDatabaseContextFunctionalTests
         await _budgetDatabaseContext.AddCategoryAsync(category);
 
         // Assert
-        Assert.That(await _sqlHelper.ExistsAsync(_budgetDatabaseDocker.DatabaseName, "SELECT 1 FROM Category WHERE Category = 'Utilities'"));
+        Assert.That(await _sqlHelper.ExistsAsync(_config["BudgetDatabaseName"], "SELECT 1 FROM Category WHERE Category = 'Utilities'"));
     }
 
     [Test]
@@ -73,10 +80,8 @@ public class BudgetDatabaseContextFunctionalTests
         // Arrange
         int categoryId = 101;
         string category = "Utilities";
-        await _sqlHelper.ExecuteAsync(_budgetDatabaseDocker.DatabaseName,
-$@"SET IDENTITY_INSERT Category ON;
-
-INSERT INTO Category
+        await _sqlHelper.ExecuteAsync(_config["BudgetDatabaseName"],
+$@"INSERT INTO Category
 (
     CategoryId,
     Category
@@ -85,23 +90,35 @@ VALUES
 (
     {categoryId},
     '{category}'
-)
-
-SET IDENTITY_INSERT Category OFF;");
+)");
 
         string description = "xx_Description_xx";
-        await _sqlHelper.ExecuteAsync(_budgetDatabaseDocker.DatabaseName, $"INSERT INTO Purchase VALUES ('{new DateTime(2023, 9, 22)}', '{description}', 123.45, {categoryId})");
+        await _sqlHelper.ExecuteAsync(_config["BudgetDatabaseName"],
+$@"INSERT INTO Purchase
+(
+    Date,
+    Description,
+    Amount,
+    CategoryId
+)
+VALUES
+(
+    '{new DateTime(2023, 9, 22)}',
+    '{description}',
+    123.45,
+    {categoryId}
+)");
 
         // Sanity check
-        Assert.That(await _sqlHelper.ExistsAsync(_budgetDatabaseDocker.DatabaseName, $"SELECT 1 FROM Category WHERE Category = '{category}'"));
-        Assert.That(await _sqlHelper.ExistsAsync(_budgetDatabaseDocker.DatabaseName, $"SELECT 1 FROM Purchase WHERE Description = '{description}' AND CategoryId = {categoryId}"));
+        Assert.That(await _sqlHelper.ExistsAsync(_config["BudgetDatabaseName"], $"SELECT 1 FROM Category WHERE Category = '{category}'"));
+        Assert.That(await _sqlHelper.ExistsAsync(_config["BudgetDatabaseName"], $"SELECT 1 FROM Purchase WHERE Description = '{description}' AND CategoryId = {categoryId}"));
 
         // Act
         await _budgetDatabaseContext.DeleteCategoryAsync(category);
 
         // Assert
-        Assert.That(await _sqlHelper.ExistsAsync(_budgetDatabaseDocker.DatabaseName, $"SELECT 1 FROM Category WHERE Category = '{category}'"), Is.False);
-        Assert.That((await _sqlHelper.QueryAsync<int?>(_budgetDatabaseDocker.DatabaseName, $"SELECT CategoryId FROM Purchase WHERE Description = '{description}'")).Single(), Is.Null);
+        Assert.That(await _sqlHelper.ExistsAsync(_config["BudgetDatabaseName"], $"SELECT 1 FROM Category WHERE Category = '{category}'"), Is.False);
+        Assert.That((await _sqlHelper.QueryAsync<int?>(_config["BudgetDatabaseName"], $"SELECT CategoryId FROM Purchase WHERE Description = '{description}'")).Single(), Is.Null);
     }
 
     [Test]
@@ -121,7 +138,7 @@ SET IDENTITY_INSERT Category OFF;");
 
         foreach (string testCategory in testCategories)
         {
-            await _sqlHelper.ExecuteAsync(_budgetDatabaseDocker.DatabaseName, $"INSERT INTO Category VALUES ('{testCategory}')");
+            await _sqlHelper.ExecuteAsync(_config["BudgetDatabaseName"], $"INSERT INTO Category (Category) VALUES ('{testCategory}')");
         }
 
         // Act
@@ -136,7 +153,7 @@ SET IDENTITY_INSERT Category OFF;");
     {
         // Arrange
         string category = "Utilities";
-        await _sqlHelper.ExecuteAsync(_budgetDatabaseDocker.DatabaseName, $"INSERT INTO Category VALUES ('{category}')");
+        await _sqlHelper.ExecuteAsync(_config["BudgetDatabaseName"], $"INSERT INTO Category (Category) VALUES ('{category}')");
 
         // Act + Assert
         Assert.That(await _budgetDatabaseContext.DoesCategoryExistAsync(category), Is.True);
@@ -168,7 +185,7 @@ SET IDENTITY_INSERT Category OFF;");
         await _budgetDatabaseContext.AddPurchaseAsync(testPurchase);
 
         // Assert
-        Assert.That((await _sqlHelper.QueryAsync<int>(_budgetDatabaseDocker.DatabaseName,
+        Assert.That((await _sqlHelper.QueryAsync<int>(_config["BudgetDatabaseName"],
 $@"SELECT
     CategoryId
 FROM Purchase
@@ -245,7 +262,7 @@ WHERE
         await _budgetDatabaseContext.AddPurchasesAsync(GetAsyncPurchases());
 
         // Assert
-        Assert.That((await _sqlHelper.QueryAsync<int>(_budgetDatabaseDocker.DatabaseName, $"SELECT COUNT(*) FROM Purchase WHERE CategoryId = {categoryId}")).Single(), Is.EqualTo(4));
+        Assert.That((await _sqlHelper.QueryAsync<int>(_config["BudgetDatabaseName"], $"SELECT COUNT(*) FROM Purchase WHERE CategoryId = {categoryId}")).Single(), Is.EqualTo(4));
     }
 
     [Test]
@@ -289,7 +306,7 @@ WHERE
         Assert.ThrowsAsync<CategoryDoesNotExistException>(async () => await _budgetDatabaseContext.AddPurchasesAsync(GetAsyncPurchases()));
 
         // Make sure the transaction rolled back
-        Assert.That((await _sqlHelper.QueryAsync<int>(_budgetDatabaseDocker.DatabaseName, "SELECT COUNT(*) FROM Purchase")).Single(), Is.EqualTo(0));
+        Assert.That((await _sqlHelper.QueryAsync<int>(_config["BudgetDatabaseName"], "SELECT COUNT(*) FROM Purchase")).Single(), Is.EqualTo(0));
     }
 
     [Test]
@@ -383,7 +400,7 @@ WHERE
     {
         // Arrange
         // Simulate a deleted category
-        await _sqlHelper.ExecuteAsync(_budgetDatabaseDocker.DatabaseName,
+        await _sqlHelper.ExecuteAsync(_config["BudgetDatabaseName"],
 $@"INSERT INTO Purchase
 (
     Date,
@@ -428,7 +445,7 @@ VALUES
         await _budgetDatabaseContext.AddPayHistoryAsync(payHistory);
 
         // Assert
-        Assert.That(await _sqlHelper.ExistsAsync(_budgetDatabaseDocker.DatabaseName,
+        Assert.That(await _sqlHelper.ExistsAsync(_config["BudgetDatabaseName"],
 $@"SELECT 1 FROM PayHistory
 WHERE
     PayPeriodStartDate = '{payHistory.PayPeriodStartDate}'
@@ -478,7 +495,7 @@ WHERE
         await _budgetDatabaseContext.AddPayHistoriesAsync(payHistories);
 
         // Assert
-        Assert.That((await _sqlHelper.QueryAsync<int>(_budgetDatabaseDocker.DatabaseName, "SELECT COUNT(*) FROM PayHistory")).Single(), Is.EqualTo(payHistories.Count));
+        Assert.That((await _sqlHelper.QueryAsync<int>(_config["BudgetDatabaseName"], "SELECT COUNT(*) FROM PayHistory")).Single(), Is.EqualTo(payHistories.Count));
     }
 
     [Test]
@@ -524,7 +541,7 @@ WHERE
         await _budgetDatabaseContext.AddPayHistoriesAsync(GetAsyncPayHistories());
 
         // Assert
-        Assert.That((await _sqlHelper.QueryAsync<int>(_budgetDatabaseDocker.DatabaseName, "SELECT COUNT(*) FROM PayHistory")).Single(), Is.EqualTo(3));
+        Assert.That((await _sqlHelper.QueryAsync<int>(_config["BudgetDatabaseName"], "SELECT COUNT(*) FROM PayHistory")).Single(), Is.EqualTo(3));
     }
 
     [Test]
@@ -565,13 +582,13 @@ WHERE
         });
 
         // Sanity check
-        Assert.That(await _sqlHelper.ExistsAsync(_budgetDatabaseDocker.DatabaseName, $"SELECT 1 FROM PayHistory WHERE PayHistoryId = {payHistoryId}"), Is.True);
+        Assert.That(await _sqlHelper.ExistsAsync(_config["BudgetDatabaseName"], $"SELECT 1 FROM PayHistory WHERE PayHistoryId = {payHistoryId}"), Is.True);
 
         // Act
         await _budgetDatabaseContext.DeletePayHistoryAsync(payHistoryId);
 
         // Assert
-        Assert.That(await _sqlHelper.ExistsAsync(_budgetDatabaseDocker.DatabaseName, $"SELECT 1 FROM PayHistory WHERE PayHistoryId = {payHistoryId}"), Is.False);
+        Assert.That(await _sqlHelper.ExistsAsync(_config["BudgetDatabaseName"], $"SELECT 1 FROM PayHistory WHERE PayHistoryId = {payHistoryId}"), Is.False);
     }
 
     [Test]
@@ -756,10 +773,8 @@ WHERE
             throw new Exception("The category is null, you should have passed a purchase without a null category");
         }
 
-        await _sqlHelper.ExecuteAsync(_budgetDatabaseDocker.DatabaseName,
-$@"SET IDENTITY_INSERT Purchase ON;
-
-INSERT INTO Purchase
+        await _sqlHelper.ExecuteAsync(_config["BudgetDatabaseName"],
+$@"INSERT INTO Purchase
 (
     PurchaseId,
     Date,
@@ -774,17 +789,13 @@ VALUES
     '{purchase.Description}',
     {purchase.Amount},
     {categoryMap[purchase.Category]}
-);
-
-SET IDENTITY_INSERT Purchase OFF;");
+);");
     }
 
     private async Task AddCategory(int id, string category)
     {
-        await _sqlHelper.ExecuteAsync(_budgetDatabaseDocker.DatabaseName,
-$@"SET IDENTITY_INSERT Category ON;
-
-INSERT INTO Category
+        await _sqlHelper.ExecuteAsync(_config["BudgetDatabaseName"],
+$@"INSERT INTO Category
 (
     CategoryId,
     Category
@@ -793,17 +804,13 @@ VALUES
 (
     {id},
     '{category}'
-);
-
-SET IDENTITY_INSERT Category OFF;");
+);");
     }
 
     private async Task InsertPayHistory(PayHistory payHistory)
     {
         await _sqlHelper.ExecuteAsync(_config["BudgetDatabaseName"],
-$@"SET IDENTITY_INSERT PayHistory ON;
-
-INSERT INTO PayHistory
+$@"INSERT INTO PayHistory
 (
     PayHistoryId,
     PayPeriodStartDate,
@@ -822,9 +829,7 @@ VALUES
     {payHistory.PreTaxDeductions},
     {payHistory.Taxes},
     {payHistory.PostTaxDeductions}
-)
-
-SET IDENTITY_INSERT PayHistory OFF;");
+)");
     }
 
     #endregion Helpers

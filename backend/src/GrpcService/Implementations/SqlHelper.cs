@@ -1,6 +1,6 @@
 ﻿using Dapper;
 using Backend.Interfaces;
-using Microsoft.Data.SqlClient;
+using Npgsql;
 using System.Data;
 
 namespace Backend.Implementations;
@@ -31,7 +31,7 @@ public class SqlHelper : ISqlHelper
 
     public async Task<IEnumerable<T>> QueryAsync<T>(string database, string sql)
     {
-        using (SqlConnection connection = new SqlConnection(_connectionStringBuilder.GetConnectionString(database)))
+        using (IDbConnection connection = new NpgsqlConnection(_connectionStringBuilder.GetConnectionString(database)))
         {
             return await connection.QueryAsync<T>(sql);
         }
@@ -39,7 +39,7 @@ public class SqlHelper : ISqlHelper
 
     public async Task<IEnumerable<T>> QueryAsync<T>(string database, string sql, object sqlParams)
     {
-        using (SqlConnection connection = new SqlConnection(_connectionStringBuilder.GetConnectionString(database)))
+        using (IDbConnection connection = new NpgsqlConnection(_connectionStringBuilder.GetConnectionString(database)))
         {
             return await connection.QueryAsync<T>(sql, sqlParams);
         }
@@ -47,7 +47,7 @@ public class SqlHelper : ISqlHelper
 
     public async Task<IEnumerable<T>> QueryAsync<T>(string database, string sql, DynamicParameters sqlParams)
     {
-        using (SqlConnection connection = new SqlConnection(_connectionStringBuilder.GetConnectionString(database)))
+        using (IDbConnection connection = new NpgsqlConnection(_connectionStringBuilder.GetConnectionString(database)))
         {
             return await connection.QueryAsync<T>(sql, sqlParams);
         }
@@ -70,7 +70,7 @@ public class SqlHelper : ISqlHelper
 
     public async Task<int> ExecuteAsync(string database, string sql)
     {
-        using (SqlConnection connection = new SqlConnection(_connectionStringBuilder.GetConnectionString(database)))
+        using (IDbConnection connection = new NpgsqlConnection(_connectionStringBuilder.GetConnectionString(database)))
         {
             return await connection.ExecuteAsync(sql);
         }
@@ -78,7 +78,7 @@ public class SqlHelper : ISqlHelper
 
     public async Task<int> ExecuteAsync(string database, string sql, object sqlParams)
     {
-        using (SqlConnection connection = new SqlConnection(_connectionStringBuilder.GetConnectionString(database)))
+        using (IDbConnection connection = new NpgsqlConnection(_connectionStringBuilder.GetConnectionString(database)))
         {
             return await connection.ExecuteAsync(sql, sqlParams);
         }
@@ -86,7 +86,7 @@ public class SqlHelper : ISqlHelper
 
     public async Task<int> ExecuteAsync(string database, string sql, DynamicParameters sqlParams)
     {
-        using (SqlConnection connection = new SqlConnection(_connectionStringBuilder.GetConnectionString(database)))
+        using (IDbConnection connection = new NpgsqlConnection(_connectionStringBuilder.GetConnectionString(database)))
         {
             return await connection.ExecuteAsync(sql, sqlParams);
         }
@@ -109,6 +109,6 @@ public class SqlHelper : ISqlHelper
 
     public IDbConnection GetSqlConnection(string database)
     {
-        return new SqlConnection(_connectionStringBuilder.GetConnectionString(database));
+        return new NpgsqlConnection(_connectionStringBuilder.GetConnectionString(database));
     }
 }
