@@ -27,7 +27,7 @@ public class BudgetDatabaseContext : IBudgetDatabaseContext
 
     public async Task AddCategoryAsync(string category)
     {
-        await _sqlHelper.ExecuteAsync(_budgetDatabaseName, "INSERT INTO Category VALUES (@category)", new { category });
+        await _sqlHelper.ExecuteAsync(_budgetDatabaseName, "INSERT INTO Category (Category) VALUES (@category)", new { category });
     }
 
     public async Task DeleteCategoryAsync(string category)
