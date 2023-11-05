@@ -39,10 +39,10 @@ function openNav(event: Event) {
   for (let i = 0; i < tabContents.length; i++)
   {
     if (tabContents[i].id === `nav-content-${tab}`) {
-      tabContents[i].style.display = 'block';
+      tabContents[i].className = tabContents[i].className.replaceAll(' is-hidden', '');
     }
-    else {
-      tabContents[i].style.display = 'none';
+    else if (!tabContents[i].className.includes('is-hidden')) {
+      tabContents[i].className += ' is-hidden';
     }
   }
 
