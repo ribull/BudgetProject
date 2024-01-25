@@ -163,3 +163,33 @@ msbuild.wrn
 
 # Visual Studio 2015
 .vs/
+
+# Logs
+logs
+*.log
+
+# Runtime data
+pids
+*.pid
+*.seed
+
+# Coverage directory used by tools like istanbul
+coverage
+.eslintcache
+
+# Dependency directory
+# https://www.npmjs.org/doc/misc/npm-faq.html#should-i-check-my-node_modules-folder-into-git
+frontend/node_modules
+
+# OSX
+.DS_Store
+
+frontend/release/app/dist
+frontend/release/build
+frontend/.erb/dll
+
+.idea
+npm-debug.log.*
+*.css.d.ts
+*.sass.d.ts
+*.scss.d.ts
