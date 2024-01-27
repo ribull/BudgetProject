@@ -9,12 +9,12 @@ public class UsernamePasswordPostgresConnectionStringBuilder : ISqlConnectionStr
     private readonly string _serverName;
     private readonly int _port;
 
-    public UsernamePasswordPostgresConnectionStringBuilder(string username, string password, string serverName, int port)
+    public UsernamePasswordPostgresConnectionStringBuilder(IConfiguration config)
     {
-        _username = username;
-        _password = password;
-        _serverName = serverName;
-        _port = port;
+        _username = config["PostgreSqlConnectionSettings:Username"]!;
+        _password = config["PostgreSqlConnectionSettings:Password"]!;
+        _serverName = config["PostgreSqlConnectionSettings:ServerName"]!;
+        _port = int.Parse(config["PostgreSqlConnectionSettings:Port"]!);
     }
 
     public string GetConnectionString(string database)

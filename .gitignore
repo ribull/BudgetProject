@@ -187,6 +187,7 @@ frontend/node_modules
 frontend/release/app/dist
 frontend/release/build
 frontend/.erb/dll
+frontend/src/generated
 
 .idea
 npm-debug.log.*

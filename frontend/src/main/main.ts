@@ -25,10 +25,15 @@ class AppUpdater {
 
 let mainWindow: BrowserWindow | null = null;
 
+// Events
 ipcMain.on('ipc-example', async (event, arg) => {
   const msgTemplate = (pingPong: string) => `IPC test: ${pingPong}`;
   console.log(msgTemplate(arg));
   event.reply('ipc-example', msgTemplate('pong'));
+});
+
+ipcMain.handle('get-top-purchases', async (event, arg) => {
+
 });
 
 if (process.env.NODE_ENV === 'production') {

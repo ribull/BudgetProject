@@ -1,3 +1,4 @@
+using Backend.HealthChecks;
 using Backend.Implementations;
 using Backend.Interfaces;
 using Backend.Services;
@@ -9,9 +10,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddGrpc();
+builder.Services.AddGrpcHealthChecks()
+    .AddCheck<DatabaseOnlineHealthCheck>("DatabaseOnline");
 
 builder.Services.AddSingleton<IBudgetDatabaseContext, BudgetDatabaseContext>();
-// builder.Services.AddSingleton<ISqlConnectionStringBuilder, TrustedPostgresConnectionStringBuilder>();
+builder.Services.AddSingleton<ISqlConnectionStringBuilder, UsernamePasswordPostgresConnectionStringBuilder>();
 builder.Services.AddSingleton<ISqlHelper, SqlHelper>();
 
 var app = builder.Build();

@@ -15,7 +15,7 @@ public class BudgetDatabaseContext : IBudgetDatabaseContext
     public BudgetDatabaseContext(IConfiguration config, ISqlHelper sqlHelper)
     {
         _sqlHelper = sqlHelper;
-        _budgetDatabaseName = config["BudgetDatabaseName"];
+        _budgetDatabaseName = config["BudgetDatabaseName"]!;
     }
 
     #region Category
