@@ -1,42 +1,43 @@
 ﻿using Backend.Controllers;
 using Backend.Implementations;
 using Backend.Interfaces;
-using BackendFunctionalTests.Helpers;
+using BudgetDatabase.Deployer;
 using Domain.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using NUnit.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
+using Testcontainers.PostgreSql;
 
 namespace BackendFunctionalTests;
 
 [TestFixture]
 public class FileImportControllerIntegrationTests
 {
+    private ISqlConnectionStringBuilder _connectionStringBuilder;
     private ISqlHelper _sqlHelper;
     private IConfiguration _config;
-    private BudgetDatabaseDocker _budgetDatabaseDocker;
 
     private IBudgetDatabaseContext _budgetDatabaseContext;
+
+    private PostgreSqlContainer _postgreSqlContainer;
 
     [OneTimeSetUp]
     public async Task OneTimeSetUp()
     {
-        _budgetDatabaseDocker = new BudgetDatabaseDocker("file-import-functional-tests-sqlserver-", "BudgetDatabase");
-        await _budgetDatabaseDocker.StartContainer();
+        _postgreSqlContainer = new PostgreSqlBuilder().Build();
 
-        _sqlHelper = new SqlHelper(_budgetDatabaseDocker.ConnectionString!);
+        await _postgreSqlContainer.StartAsync();
+
+        _connectionStringBuilder = new UsernamePasswordPostgresConnectionStringBuilder("postgres", "postgres", _postgreSqlContainer.Hostname, _postgreSqlContainer.GetMappedPublicPort(5432));
+        _sqlHelper = new SqlHelper(_connectionStringBuilder);
 
         _config = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string>()
             {
-                { "BudgetDatabaseName", _budgetDatabaseDocker.DatabaseName }
+                { "BudgetDatabaseName", "budgetdb" }
             }).Build();
 
         _budgetDatabaseContext = new BudgetDatabaseContext(_config, _sqlHelper);
@@ -45,19 +46,19 @@ public class FileImportControllerIntegrationTests
     [OneTimeTearDown]
     public async Task OneTimeTearDown()
     {
-        await _budgetDatabaseDocker.DisposeAsync();
+        await _postgreSqlContainer.DisposeAsync();
     }
 
     [SetUp]
     public void Setup()
     {
-        _budgetDatabaseDocker.DeployBudgetDb();
+        DatabaseDeployer.DeployDatabase(_connectionStringBuilder.GetConnectionString(_config["BudgetDatabaseName"]));
     }
 
     [TearDown]
     public async Task TearDown()
     {
-        await _budgetDatabaseDocker.DropDb();
+        await _sqlHelper.ExecuteAsync("postgres", $@"DROP DATABASE {_config["BudgetDatabaseName"]} WITH (FORCE)");
     }
 
     [Test]

@@ -11,7 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddGrpc();
 
 builder.Services.AddSingleton<IBudgetDatabaseContext, BudgetDatabaseContext>();
-builder.Services.AddSingleton<ISqlConnectionStringBuilder, StandardConnectionStringBuilder>();
+// builder.Services.AddSingleton<ISqlConnectionStringBuilder, TrustedPostgresConnectionStringBuilder>();
 builder.Services.AddSingleton<ISqlHelper, SqlHelper>();
 
 var app = builder.Build();
