@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>117d5311-60a4-4b86-ab56-086942f6cbd4</UserSecretsId>
-	<OutputType>Exe</OutputType>
+    <OutputType>Exe</OutputType>
   </PropertyGroup>
 
   <ItemGroup>
@@ -26,6 +26,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="Protos\budget_service.proto" />
+    <None Remove="Protos\health_check.proto" />
   </ItemGroup>
 </Project>

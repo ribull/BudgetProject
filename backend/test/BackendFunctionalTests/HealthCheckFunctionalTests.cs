@@ -5,7 +5,6 @@ using BudgetDatabase.Deployer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using NUnit.Framework;
-using System.Data.Common;
 using Testcontainers.PostgreSql;
 
 namespace BackendFunctionalTests;

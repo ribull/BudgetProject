@@ -1,32 +1,26 @@
-import { Level } from 'react-bulma-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { icon } from '@fortawesome/fontawesome-svg-core/import.macro';
-import { CSSProperties } from 'react';
+import {
+  faCircleCheck,
+  faTriangleExclamation,
+} from '@fortawesome/free-solid-svg-icons';
+import { Container, Content } from 'react-bulma-components';
 
 interface ConnectedFooterProps {
-  style: CSSProperties;
   isConnected: boolean;
 }
 
-export default function ConnectedFooter({
-  style,
-  isConnected,
-}: ConnectedFooterProps) {
+export default function ConnectedFooter({ isConnected }: ConnectedFooterProps) {
   return (
-    <Level style={style}>
-      <Level.Side align="right">
-        <Level.Item>{isConnected ? 'Connected!' : 'Not Connected!'}</Level.Item>
-        <Level.Item>
+    <Container>
+      <Content style={{ textAlign: 'right', color: '$grey-light' }}>
+        <h2>
+          {isConnected ? 'Connected! ' : 'Not Connected! '}
           <FontAwesomeIcon
-            color={isConnected ? 'green' : 'red'}
-            icon={icon({
-              name: isConnected ? 'circle-check' : 'triangle-exclamation',
-              family: 'classic',
-              style: 'solid',
-            })}
+            color={isConnected ? 'green' : 'yellow'}
+            icon={isConnected ? faCircleCheck : faTriangleExclamation}
           />
-        </Level.Item>
-      </Level.Side>
-    </Level>
+        </h2>
+      </Content>
+    </Container>
   );
 }
