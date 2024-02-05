@@ -1,8 +1,10 @@
 # Start by building our dockerfiles
 $version = "0.0.1"
+$databaseName = "budgetdb"
 $dataFiles = "C:\Users\ribul\Documents\budgetdatabasedatafiles"
 $postgresUsername = "postgres"
 $postgresPassword = "postgres"
+$restHttpPort = "14140"
 $grpcHttpPort = "14141"
 
 docker build . -t budget-grpc-server:$version
@@ -18,6 +20,7 @@ docker run -d `
 	--name budget-database-postgres `
 	-e POSTGRES_PASSWORD=$postgresPassword `
 	-v $dataFiles`:"/var/lib/postgresql/data" `
+    -p 5432:5432 `
 	postgres
 
 # Wait for Postgres
@@ -40,6 +43,7 @@ docker run `
     -e POSTGRES_USERNAME=$postgresUsername `
     -e POSTGRES_PASSWORD=$postgresPassword `
     -e POSTGRES_PORT=5432 `
+    -e DATABASE_NAME=$databaseName `
     budget-database-deployer:$version
 
 # API
@@ -49,5 +53,8 @@ docker run -d `
     -e PostgreSqlConnectionDetails__Username=$postgresUsername `
     -e PostgreSqlConnectionDetails__Password=$postgresPassword `
     -e PostgreSqlConnectionDetails__Port=5432 `
-    -p $grpcHttpPort`:8080 `
-    budget-grpc-server:$version
+    -e BudgetDatabaseName=$databaseName `
+    -e ASPNETCORE_ENVIRONMENT=Development `
+    -p $restHttpPort`:5000 `
+    -p $grpcHttpPort`:5001 `
+    budget-grpc-server:$version 

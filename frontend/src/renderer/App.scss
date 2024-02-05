@@ -3,9 +3,47 @@
  *        See https://github.com/webpack-contrib/sass-loader#imports
  */
  //styles.scss
- 
 
-$body-overflow-y: hidden;
 
-@import "~bulmaswatch/darkly/bulmaswatch";
-@import "~bulma/bulma";
+@use "~bulma/bulma";
+@use "~bulmaswatch/cyborg/bulmaswatch";
+@import "~bulma-calendar/dist/css/bulma-calendar.min.css";
+
+
+html {
+  overflow-y: hidden;
+}
+
+.navbar {
+  border: 0px
+}
+
+.nav-tabs {
+  background-color: bulmaswatch.$primary;
+}
+
+.app-footer {
+  background-color: bulmaswatch.$primary;
+}
+
+.app-page {
+  width: 100vw;
+  height: 100vh;
+
+  display: flex;
+  flex-direction: column;
+
+  .tab-content {
+    flex-grow: 1;
+    padding-left: 2vw;
+    padding-right: 2vw;
+  }
+}
+
+.aligning-label {
+  color: transparent;
+}
+
+.field.is-grouped {
+  gap: 10px;
+}

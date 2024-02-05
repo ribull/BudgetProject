@@ -16,13 +16,17 @@ import { ChannelCredentials } from '@grpc/grpc-js';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 import { BudgetServiceClient } from '../generated/budget_service';
-import { isAppConstants } from '../helpers/TypeSafety';
+import { HealthClient } from '../generated/health_check';
+import { GRPC_PORT, REST_PORT } from '../helpers/Constants';
 import {
-  // eslint-disable-next-line camelcase
-  HealthCheckResponse_ServingStatus,
-  HealthClient,
-} from '../generated/health_check';
-import ApiConnected from '../types/ApiConnected';
+  addCategory,
+  addPurchase,
+  getCategories,
+  getPurchases,
+  pollOnline,
+  uploadFile,
+} from './contextBridgeFunctions';
+import { isAppConstants } from '../helpers/TypeSafety';
 
 class AppUpdater {
   constructor() {
@@ -35,66 +39,45 @@ class AppUpdater {
 let mainWindow: BrowserWindow | null = null;
 let budgetService: BudgetServiceClient | null = null;
 let healthCheckService: HealthClient | null = null;
+let serverName: string | null = null;
 
 // Events
 ipcMain.on('settings-change', (event, arg) => {
   if (isAppConstants(arg)) {
     if (arg.apiUrl !== null) {
+      serverName = arg.apiUrl;
       budgetService = new BudgetServiceClient(
-        arg.apiUrl,
+        `${serverName}:${GRPC_PORT}`,
         ChannelCredentials.createInsecure(),
       );
 
       healthCheckService = new HealthClient(
-        arg.apiUrl,
+        `${serverName}:${GRPC_PORT}`,
         ChannelCredentials.createInsecure(),
       );
     }
   }
 });
 
-ipcMain.handle('poll-online', async () => {
-  return new Promise<ApiConnected>((resolve, reject) => {
-    if (healthCheckService !== null) {
-      healthCheckService.check(
-        {
-          service: 'DatabaseOnline',
-        },
-        (err, response) => {
-          console.log(err);
-          console.log(response);
-          if (err !== null) {
-            // console.log(err);
-            reject(
-              new Error(
-                `An error occured while checking the health of the server: ${err}`,
-              ),
-            );
-          }
+ipcMain.handle('poll-online', async () => pollOnline(healthCheckService));
 
-          // eslint-disable-next-line camelcase
-          if (response.status === HealthCheckResponse_ServingStatus.SERVING) {
-            resolve({
-              connected: true,
-              message: 'The connection is good!',
-            });
-          }
+ipcMain.handle('get-purchases', async (event, arg) =>
+  getPurchases(arg, budgetService),
+);
 
-          resolve({
-            connected: false,
-            message: `The health check response returned ${response.status} with message`,
-          });
-        },
-      );
-    }
+ipcMain.handle('add-purchase', async (event, args) =>
+  addPurchase(args, budgetService),
+);
 
-    resolve({
-      connected: false,
-      message:
-        "The health check service is null, it's likely you have not set an api url",
-    });
-  });
-});
+ipcMain.handle('upload-file', async (event, arg) =>
+  uploadFile(arg, `${serverName}:${REST_PORT}`),
+);
+
+ipcMain.handle('get-categories', async () => getCategories(budgetService));
+
+ipcMain.handle('add-category', async (event, arg) =>
+  addCategory(arg, budgetService),
+);
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');

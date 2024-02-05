@@ -22,4 +22,4 @@ FROM mcr.microsoft.com/dotnet/runtime:8.0
 
 WORKDIR /app
 COPY --from=publish /app/publish ./
-ENTRYPOINT dotnet BudgetDatabase.dll --server $POSTGRES_SERVER --port $POSTGRES_PORT --username $POSTGRES_USERNAME --password $POSTGRES_PASSWORD
+ENTRYPOINT dotnet BudgetDatabase.dll --server $POSTGRES_SERVER --port $POSTGRES_PORT --username $POSTGRES_USERNAME --password $POSTGRES_PASSWORD --database $DATABASE_NAME

@@ -91,6 +91,63 @@ LEFT JOIN Category c
 {(wheres.Any() ? $"WHERE {string.Join(" AND ", wheres)}" : string.Empty)}", sqlParams);
     }
 
+    public async Task<IEnumerable<Purchase>> GetMostCommonPurchasesAsync(string? category = null, DateTime? startDate = null, DateTime? endDate = null, int? count = null)
+    {
+        List<string> wheres = new();
+        DynamicParameters sqlParams = new();
+
+        if (category is not null)
+        {
+            wheres.Add("Category = @category");
+            sqlParams.Add("category", category);
+        }
+
+        if (startDate is not null)
+        {
+            wheres.Add("Date >= @startDate");
+            sqlParams.Add("startDate", startDate);
+        }
+
+        if (endDate is not null)
+        {
+            wheres.Add("Date <= @endDate");
+            sqlParams.Add("endDate", endDate);
+        }
+
+        string? limit = null;
+        if (count is not null)
+        {
+            limit = $"LIMIT {count}";
+        }
+
+        return await _sqlHelper.QueryAsync<Purchase>(_budgetDatabaseName,
+$@"SELECT
+    PurchaseId,
+    Date,
+    Description,
+    Amount,
+    Category
+FROM (
+    SELECT
+        PurchaseId,
+        Date,
+        Description,
+        Amount,
+        Category,
+        ROW_NUMBER() OVER (PARTITION BY p.Description ORDER BY p.Date DESC) AS row_num
+    FROM
+        Purchase p
+    LEFT JOIN Category c
+        ON p.CategoryId = c.CategoryId
+    {(wheres.Any() ? $"WHERE {string.Join(" AND ", wheres)}" : string.Empty)}
+) lp
+WHERE
+    lp.row_num = 1
+ORDER BY
+    (SELECT COUNT(*) FROM Purchase p2 WHERE p2.Description = lp.Description) DESC
+{limit}", sqlParams);
+    }
+
     public async Task AddPurchaseAsync(Purchase purchase)
     {
         if (purchase.Category is null)

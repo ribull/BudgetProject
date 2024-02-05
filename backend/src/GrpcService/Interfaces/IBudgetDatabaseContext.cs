@@ -22,6 +22,8 @@ public interface IBudgetDatabaseContext
 
     Task<IEnumerable<Purchase>> GetPurchasesAsync(string? description = null, string? category = null, DateTime? startDate = null, DateTime? endDate = null);
 
+    Task<IEnumerable<Purchase>> GetMostCommonPurchasesAsync(string? category = null, DateTime? startDate = null, DateTime? endDate = null, int? count = null);
+
     Task AddPurchaseAsync(Purchase purchase);
 
     Task AddPurchasesAsync(IAsyncEnumerable<Purchase> purchases);

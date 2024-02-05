@@ -2,7 +2,14 @@
 /* eslint no-unused-vars: off */
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
 
-export type Channels = 'poll-online' | 'settings-change';
+export type Channels =
+  | 'poll-online'
+  | 'settings-change'
+  | 'upload-file'
+  | 'get-purchases'
+  | 'add-purchase'
+  | 'add-category'
+  | 'get-categories';
 
 const electronHandler = {
   ipcRenderer: {

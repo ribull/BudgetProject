@@ -2,6 +2,9 @@
 using Backend.Interfaces;
 using Grpc.Core;
 using Backend.Extensions;
+using CsvHelper.Configuration;
+using CsvHelper;
+using System.Globalization;
 
 namespace Backend.Services;
 
@@ -23,6 +26,20 @@ public class BudgetGrpcService : BudgetService.BudgetServiceBase
             endDate: request.EndTime?.ToDateTime());
 
         GetPurchasesResponse response = new();
+        response.Purchases.Add(purchases.Select(p => p.ToPurchaseProto()));
+
+        return response;
+    }
+
+    public override async Task<GetMostCommonPurchasesResponse> GetMostCommonPurchases(GetMostCommonPurchasesRequest request, ServerCallContext? context)
+    {
+        IEnumerable<Domain.Models.Purchase> purchases = await _budgetDatabaseContext.GetMostCommonPurchasesAsync(
+            category: request.Category,
+            startDate: request.StartTime?.ToDateTime(),
+            endDate: request.EndTime?.ToDateTime(),
+            count: request.Count);
+
+        GetMostCommonPurchasesResponse response = new();
         response.Purchases.Add(purchases.Select(p => p.ToPurchaseProto()));
 
         return response;

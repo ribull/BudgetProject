@@ -17,6 +17,9 @@ public class DbUpArgs
 
     [Option('w', "password", Required = false, Default = "postgres")]
     public string Password { get; set; }
+
+    [Option('d', "database", Required = true)]
+    public string DatabaseName { get; set; }
 }
 
 public class Program
@@ -28,7 +31,7 @@ public class Program
             {
                 try
                 {
-                    DatabaseDeployer.DeployDatabase($"Server={dbUpArgs.ServerName};Port={dbUpArgs.Port};Database=postgres;User Id={dbUpArgs.Username};Password={dbUpArgs.Password}");
+                    DatabaseDeployer.DeployDatabase($"Server={dbUpArgs.ServerName};Port={dbUpArgs.Port};Database={dbUpArgs.DatabaseName};User Id={dbUpArgs.Username};Password={dbUpArgs.Password}");
                     return 0;
                 }
                 catch (DatabaseDeployException e)

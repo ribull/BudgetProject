@@ -7,6 +7,7 @@ package budget_proto;
 
 service BudgetService {
   rpc GetPurchases (GetPurchasesRequest) returns (GetPurchasesResponse);
+  rpc GetMostCommonPurchases (GetMostCommonPurchasesRequest) returns (GetMostCommonPurchasesResponse);
   rpc AddPurchase (AddPurchaseRequest) returns (AddPurchaseResponse);
   rpc AddCategory (AddCategoryRequest) returns (AddCategoryResponse);
   rpc DeleteCategory (DeleteCategoryRequest) returns (DeleteCategoryResponse);
@@ -26,6 +27,17 @@ message GetPurchasesRequest {
 }
 
 message GetPurchasesResponse {
+  repeated Purchase purchases = 1;
+}
+
+message GetMostCommonPurchasesRequest {
+  optional google.protobuf.StringValue category = 1;
+  optional google.protobuf.Timestamp start_time = 2;
+  optional google.protobuf.Timestamp end_time = 3;
+  optional google.protobuf.Int32Value count = 4;
+}
+
+message GetMostCommonPurchasesResponse {
   repeated Purchase purchases = 1;
 }
 

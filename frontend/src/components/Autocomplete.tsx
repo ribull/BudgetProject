@@ -1,31 +1,35 @@
 import React, { useState } from 'react';
 import { Form } from 'react-bulma-components';
+import { Color } from 'react-bulma-components/src/components';
 
-const { Input, Field, Control, Label } = Form;
+const { Input, Control } = Form;
 
 interface AutoCompleteProps {
   value: string;
-  label: string;
   possibleMatches: string[];
-  onSelection: (selection: string) => void;
+  color: Color;
+  onSelection: (selection: string, autoCompleted: boolean) => void;
 }
 
 export default function AutoComplete({
   value,
-  label,
   possibleMatches,
+  color,
   onSelection,
 }: AutoCompleteProps) {
   const [matches, setMatches] = useState<string[]>([]);
   const [selectedIndex, setSelectedIndex] = useState<number>();
 
   function handleTyping(event: React.ChangeEvent<HTMLInputElement>) {
-    onSelection(event.currentTarget.value);
+    onSelection(event.currentTarget.value, false);
     setMatches(
-      possibleMatches.filter((match) =>
-        match.startsWith(event.currentTarget.value),
-      ),
+      event.currentTarget.value === ''
+        ? []
+        : possibleMatches.filter((match) =>
+            match.includes(event.currentTarget.value),
+          ),
     );
+
     setSelectedIndex(undefined);
   }
 
@@ -33,7 +37,7 @@ export default function AutoComplete({
     switch (event.key) {
       case 'Enter': {
         if (selectedIndex !== undefined) {
-          onSelection(matches[selectedIndex]);
+          onSelection(matches[selectedIndex], true);
         }
 
         setMatches([]);
@@ -56,45 +60,43 @@ export default function AutoComplete({
   }
 
   function handleSelection(event: React.MouseEvent, selectedMatch: string) {
-    onSelection(selectedMatch);
+    onSelection(selectedMatch, true);
     setSelectedIndex(undefined);
     setMatches([]);
   }
 
   return (
-    <Field>
-      <Label>{label}</Label>
-      <Control>
-        <div className={`dropdown ${matches.length > 0 ? 'is-active' : ''}`}>
-          <div className="dropdown-trigger">
-            <Input
-              type="text"
-              value={value}
-              onChange={(event) => handleTyping(event)}
-              onKeyDown={(event) => handleKeyPress(event)}
-            />
-          </div>
-          <div className="dropdown-menu">
-            {matches.length > 0 && (
-              <div className="dropdown-content">
-                {matches.map((match, index) => (
-                  // eslint-disable-next-line jsx-a11y/anchor-is-valid
-                  <a
-                    className={`dropdown-item ${
-                      selectedIndex === index ? 'is-active' : ''
-                    }`}
-                    key={match}
-                    onClick={(event) => handleSelection(event, match)}
-                    href="#"
-                  >
-                    {match}
-                  </a>
-                ))}
-              </div>
-            )}
-          </div>
+    <Control>
+      <div className={`dropdown ${matches.length > 0 ? 'is-active' : ''}`}>
+        <div className="dropdown-trigger">
+          <Input
+            type="text"
+            value={value}
+            onChange={(event) => handleTyping(event)}
+            onKeyDown={(event) => handleKeyPress(event)}
+            color={color}
+          />
         </div>
-      </Control>
-    </Field>
+        <div className="dropdown-menu">
+          {matches.length > 0 && (
+            <div className="dropdown-content">
+              {matches.map((match, index) => (
+                // eslint-disable-next-line jsx-a11y/anchor-is-valid
+                <a
+                  className={`dropdown-item ${
+                    selectedIndex === index ? 'is-active' : ''
+                  }`}
+                  key={match}
+                  onClick={(event) => handleSelection(event, match)}
+                  href="#"
+                >
+                  {match}
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </Control>
   );
 }

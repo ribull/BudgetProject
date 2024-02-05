@@ -3,16 +3,20 @@ import {
   faCircleCheck,
   faTriangleExclamation,
 } from '@fortawesome/free-solid-svg-icons';
-import { Container, Content } from 'react-bulma-components';
+import { Content, Footer } from 'react-bulma-components';
 
 interface ConnectedFooterProps {
   isConnected: boolean;
+  className: string;
 }
 
-export default function ConnectedFooter({ isConnected }: ConnectedFooterProps) {
+export default function ConnectedFooter({
+  isConnected,
+  className,
+}: ConnectedFooterProps) {
   return (
-    <Container>
-      <Content style={{ textAlign: 'right', color: '$grey-light' }}>
+    <Footer className={className}>
+      <Content>
         <h2>
           {isConnected ? 'Connected! ' : 'Not Connected! '}
           <FontAwesomeIcon
@@ -21,6 +25,6 @@ export default function ConnectedFooter({ isConnected }: ConnectedFooterProps) {
           />
         </h2>
       </Content>
-    </Container>
+    </Footer>
   );
 }

@@ -1,14 +1,10 @@
-﻿using System.Formats.Asn1;
-using System.Globalization;
-using System.Runtime.CompilerServices;
-using System.Security.AccessControl;
+﻿using System.Globalization;
 using Backend.Interfaces;
 using CsvHelper;
 using CsvHelper.Configuration;
 using CsvHelper.TypeConversion;
 using Domain.Models;
 using Microsoft.AspNetCore.Mvc;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace Backend.Controllers;
 
@@ -23,7 +19,7 @@ public class FileImportController : ControllerBase
         _budgetDatabaseContext = budgetDatabaseContext;
     }
 
-    [HttpPost]
+    [HttpPost("uploadpurchasecsv")]
     public async Task<ActionResult> ImportPurchasesFromCsv(IFormFile csvFile)
     {
         try
@@ -44,7 +40,7 @@ public class FileImportController : ControllerBase
         }
     }
 
-    [HttpPost]
+    [HttpPost("uploadworkdaycsv")]
     public async Task<ActionResult> ImportPayHistoryFromWorkdayCsv(IFormFile csvFile)
     {
         try

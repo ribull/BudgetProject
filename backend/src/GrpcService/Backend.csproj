@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Protobuf Include="Protos\*.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\budget_service.proto" GrpcServices="Server" />
   </ItemGroup>
 
   <ItemGroup>

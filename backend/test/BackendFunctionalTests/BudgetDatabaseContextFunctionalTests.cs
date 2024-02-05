@@ -33,10 +33,10 @@ public class BudgetDatabaseContextFunctionalTests
             .AddInMemoryCollection(new Dictionary<string, string?>()
             {
                 { "BudgetDatabaseName", "budgetdb" },
-                { "PostgreSqlConnectionSettings:ServerName",  _postgreSqlContainer.Hostname },
-                { "PostgreSqlConnectionSettings:Username", "postgres" },
-                { "PostgreSqlConnectionSettings:Password", "postgres" },
-                { "PostgreSqlConnectionSettings:Port", $"{_postgreSqlContainer.GetMappedPublicPort(5432)}" }
+                { "PostgreSqlConnectionDetails:ServerName",  _postgreSqlContainer.Hostname },
+                { "PostgreSqlConnectionDetails:Username", "postgres" },
+                { "PostgreSqlConnectionDetails:Password", "postgres" },
+                { "PostgreSqlConnectionDetails:Port", $"{_postgreSqlContainer.GetMappedPublicPort(5432)}" }
             }).Build();
 
         _connectionStringBuilder = new UsernamePasswordPostgresConnectionStringBuilder(_config);
@@ -425,6 +425,233 @@ VALUES
 
         // Assert
         Assert.That(purchases.Single().Category, Is.Null);
+    }
+
+    [Test]
+    public async Task GetMostCommonPurchasesTest()
+    {
+        // Arrange
+        Dictionary<string, int> categoryMap = new()
+        {
+            { "TestCategory1", 1 },
+            { "TestCategory1234", 1234 },
+            { "Utilities", 2 },
+            { "Hello", 5 }
+        };
+
+        List<Purchase> testPurchases = new()
+        {
+            new Purchase
+            {
+                PurchaseId = 1,
+                Date = new DateTime(2023, 9, 21),
+                Description = "TestDescription",
+                Category = categoryMap.ElementAt(0).Key,
+                Amount = 152.89
+            },
+            new Purchase
+            {
+                PurchaseId = 2,
+                Date = new DateTime(2023, 9, 21),
+                Description = "TestDescription2",
+                Category = categoryMap.ElementAt(3).Key,
+                Amount = 188.18
+            },
+            new Purchase
+            {
+                PurchaseId = 3,
+                Date = new DateTime(2023, 8, 13),
+                Description = "TestDescriptionX",
+                Category = categoryMap.ElementAt(1).Key,
+                Amount = 19.19
+            },
+            new Purchase
+            {
+                PurchaseId = 10,
+                Date = new DateTime(2023, 10, 17),
+                Description = "TestDescriptionX",
+                Category = categoryMap.ElementAt(2).Key,
+                Amount = 26.67
+            },
+            new Purchase
+            {
+                PurchaseId = 101,
+                Date = new DateTime(2023, 10, 18),
+                Description = "TestDescriptionX",
+                Category = categoryMap.ElementAt(2).Key,
+                Amount = 29.97
+            },
+            new Purchase
+            {
+                PurchaseId = 11,
+                Date = new DateTime(2023, 9, 22),
+                Description = "TestDescription",
+                Category = categoryMap.ElementAt(0).Key,
+                Amount = 12.31
+            },
+            new Purchase
+            {
+                PurchaseId = 12,
+                Date = new DateTime(2023, 9, 24),
+                Description = "TestDescription",
+                Category = categoryMap.ElementAt(0).Key,
+                Amount = 999.99
+            },
+            new Purchase
+            {
+                PurchaseId = 13,
+                Date = new DateTime(2023, 9, 21),
+                Description = "TestDescription2",
+                Category = categoryMap.ElementAt(3).Key,
+                Amount = 188.18
+            },
+            new Purchase
+            {
+                PurchaseId = 14,
+                Date = new DateTime(2023, 9, 24),
+                Description = "TestDescription2",
+                Category = categoryMap.ElementAt(3).Key,
+                Amount = 188.18
+            },
+            new Purchase
+            {
+                PurchaseId = 15,
+                Date = new DateTime(2023, 9, 26),
+                Description = "TestDescription2",
+                Category = categoryMap.ElementAt(3).Key,
+                Amount = 188.18
+            },
+            new Purchase
+            {
+                PurchaseId = 16,
+                Date = new DateTime(2023, 9, 29),
+                Description = "TestDescription2",
+                Category = categoryMap.ElementAt(3).Key,
+                Amount = 188.18
+            },
+            new Purchase
+            {
+                PurchaseId = 17,
+                Date = new DateTime(2023, 9, 29),
+                Description = "TestDescriptionNoOtherPurchases",
+                Category = categoryMap.ElementAt(3).Key,
+                Amount = 0.23
+            },
+            new Purchase
+            {
+                PurchaseId = 18,
+                Date = new DateTime(2023, 2, 12),
+                Description = "Utilities1",
+                Category = categoryMap.ElementAt(2).Key,
+                Amount = 0.45
+            },
+            new Purchase
+            {
+                PurchaseId = 19,
+                Date = new DateTime(2023, 2, 13),
+                Description = "Utilities1",
+                Category = categoryMap.ElementAt(2).Key,
+                Amount = 0.67
+            },
+            new Purchase
+            {
+                PurchaseId = 20,
+                Date = new DateTime(2023, 2, 14),
+                Description = "Utilities1",
+                Category = categoryMap.ElementAt(2).Key,
+                Amount = 0.89
+            },
+            new Purchase
+            {
+                PurchaseId = 21,
+                Date = new DateTime(2024, 1, 1),
+                Description = "Utilities1",
+                Category = categoryMap.ElementAt(2).Key,
+                Amount = 1.0
+            },
+            new Purchase
+            {
+                PurchaseId = 22,
+                Date = new DateTime(2024, 1, 2),
+                Description = "Utilities1",
+                Category = categoryMap.ElementAt(2).Key,
+                Amount = 1.1
+            },
+            new Purchase
+            {
+                PurchaseId = 23,
+                Date = new DateTime(2024, 1, 3),
+                Description = "Utilities1",
+                Category = categoryMap.ElementAt(2).Key,
+                Amount = 1.2
+            },
+            new Purchase
+            {
+                PurchaseId = 24,
+                Date = new DateTime(2024, 1, 4),
+                Description = "Utilities1",
+                Category = categoryMap.ElementAt(2).Key,
+                Amount = 1.3
+            }
+        };
+
+        foreach (KeyValuePair<string, int> keyValuePair in categoryMap)
+        {
+            await AddCategory(keyValuePair.Value, keyValuePair.Key);
+        }
+
+        foreach (Purchase purchase in testPurchases)
+        {
+            await AddPurchase(purchase, categoryMap);
+        }
+
+        // I want to define this in code as well, that way I can make sure I'm getting it right in SQL
+        IEnumerable<Purchase> GetMostCommonPurchases(string? category = null, DateTime? startDate = null, DateTime? endDate = null, int? count = null)
+        {
+            IEnumerable<Purchase> filteredPurchases = testPurchases.Where(p =>
+                (category is null || p.Category == category)
+                && (startDate is null || p.Date >= startDate)
+                && (endDate is null || p.Date <= endDate));
+
+            // Get the top descriptions
+            Dictionary<string, int> purchaseCounts = new();
+            foreach (Purchase p in filteredPurchases)
+            {
+                if (purchaseCounts.ContainsKey(p.Description))
+                {
+                    purchaseCounts[p.Description] += 1;
+                }
+                else
+                {
+                    purchaseCounts[p.Description] = 1;
+                }
+            }
+
+            IOrderedEnumerable<Purchase> latestPurchases = filteredPurchases.OrderByDescending(p => p.Date);
+            List<Purchase> results = new();
+            foreach ((string description, int cnt) in purchaseCounts.ToList().OrderByDescending(kvPair => kvPair.Value).Take(count is null ? purchaseCounts.Count : count.Value))
+            {
+                results.Add(latestPurchases.First(p => p.Description == description));
+            }
+
+            return results;
+        }
+
+        // Act + Assert
+        IEnumerable<Purchase> purchases = await _budgetDatabaseContext.GetMostCommonPurchasesAsync();
+        Assert.That(purchases, Is.EquivalentTo(GetMostCommonPurchases()));
+
+        IEnumerable<Purchase> utilitiesPurchases = await _budgetDatabaseContext.GetMostCommonPurchasesAsync(category: "Utilities");
+        Assert.That(utilitiesPurchases, Is.EquivalentTo(GetMostCommonPurchases(category: "Utilities")));
+
+        IEnumerable<Purchase> dateAfterPurchases = await _budgetDatabaseContext.GetMostCommonPurchasesAsync(startDate: new DateTime(2023, 10, 1));
+        Assert.That(dateAfterPurchases, Is.EquivalentTo(GetMostCommonPurchases(startDate: new DateTime(2023, 10, 1))));
+
+        IEnumerable<Purchase> dateBeforePurchases = await _budgetDatabaseContext.GetMostCommonPurchasesAsync(endDate: new DateTime(2023, 10, 1));
+        Assert.That(dateBeforePurchases, Is.EquivalentTo(GetMostCommonPurchases(endDate: new DateTime(2023, 10, 1))));
+
+        IEnumerable<Purchase> countPurchases = await _budgetDatabaseContext.GetMostCommonPurchasesAsync(count: 3);
+        Assert.That(countPurchases, Is.EquivalentTo(GetMostCommonPurchases(count: 3)));
     }
 
     #endregion Purchase

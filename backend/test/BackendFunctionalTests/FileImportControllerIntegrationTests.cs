@@ -36,10 +36,10 @@ public class FileImportControllerIntegrationTests
             .AddInMemoryCollection(new Dictionary<string, string?>()
             {
                 { "BudgetDatabaseName", "budgetdb" },
-                { "PostgreSqlConnectionSettings:ServerName",  _postgreSqlContainer.Hostname },
-                { "PostgreSqlConnectionSettings:Username", "postgres" },
-                { "PostgreSqlConnectionSettings:Password", "postgres" },
-                { "PostgreSqlConnectionSettings:Port", $"{_postgreSqlContainer.GetMappedPublicPort(5432)}" }
+                { "PostgreSqlConnectionDetails:ServerName",  _postgreSqlContainer.Hostname },
+                { "PostgreSqlConnectionDetails:Username", "postgres" },
+                { "PostgreSqlConnectionDetails:Password", "postgres" },
+                { "PostgreSqlConnectionDetails:Port", $"{_postgreSqlContainer.GetMappedPublicPort(5432)}" }
             }).Build();
 
         _connectionStringBuilder = new UsernamePasswordPostgresConnectionStringBuilder(_config);
