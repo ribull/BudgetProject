@@ -2,16 +2,19 @@ import React, { useEffect } from 'react';
 import bulmaCalendar from 'bulma-calendar';
 
 import { Form } from 'react-bulma-components';
+import { Size } from 'react-bulma-components/src/components';
 
 const { Input } = Form;
 
 interface BulmaDatepickerProps {
   onSelect: (date: Date) => void;
+  size?: Size;
   initialValue?: Date;
 }
 
 export default function BulmaDatepicker({
   onSelect,
+  size,
   initialValue,
 }: BulmaDatepickerProps) {
   useEffect(() => {
@@ -24,11 +27,11 @@ export default function BulmaDatepicker({
         onSelect(new Date(date.timeStamp));
       });
     }
-  }, []); // Empty dependency array ensures the effect runs only once on component mount
+  }); // Empty dependency array ensures the effect runs only once on component mount
 
   return (
     <div>
-      <Input type="date" />
+      <Input type="date" size={size} />
     </div>
   );
 }

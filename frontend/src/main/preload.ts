@@ -8,6 +8,8 @@ export type Channels =
   | 'upload-file'
   | 'get-purchases'
   | 'add-purchase'
+  | 'edit-purchase'
+  | 'delete-purchase'
   | 'add-category'
   | 'get-categories';
 

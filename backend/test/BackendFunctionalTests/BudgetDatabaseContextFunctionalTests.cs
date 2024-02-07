@@ -314,6 +314,158 @@ WHERE
     }
 
     [Test]
+    public async Task UpdatePurchaseTest()
+    {
+        // Arrange
+        int categoryId = 100;
+        string category = "TestCategory";
+
+        await AddCategory(categoryId, category);
+
+        Purchase testPurchase = new Purchase
+        {
+            PurchaseId = 1001,
+            Date = new DateTime(2023, 9, 21),
+            Description = "Test Description",
+            Amount = 123.45,
+            Category = category
+        };
+
+        await AddPurchase(testPurchase, new() { { category, categoryId } });
+
+        // Sanity check
+        Assert.That(await _sqlHelper.ExistsAsync(_config["BudgetDatabaseName"]!,
+$@"SELECT 1
+FROM Purchase
+WHERE
+    PurchaseId = {testPurchase.PurchaseId}
+    AND Date = '{testPurchase.Date}'
+    AND Description = '{testPurchase.Description}'
+    AND Amount = {testPurchase.Amount}
+    AND CategoryId = {categoryId}"));
+
+        int newCategoryId = 101;
+        string newCategory = "TestCategoryNew";
+
+        await AddCategory(newCategoryId, newCategory);
+
+        Purchase newPurchase = new Purchase
+        {
+            PurchaseId = testPurchase.PurchaseId,
+            Date = new DateTime(2023, 10, 12),
+            Description = "Test Description New",
+            Amount = 999.89,
+            Category = newCategory
+        };
+
+        // Act
+        await _budgetDatabaseContext.UpdatePurchaseAsync(newPurchase);
+
+        // Assert
+        Assert.That(await _sqlHelper.ExistsAsync(_config["BudgetDatabaseName"]!,
+$@"SELECT 1
+FROM Purchase
+WHERE
+    PurchaseId = {newPurchase.PurchaseId}
+    AND Date = '{newPurchase.Date}'
+    AND Description = '{newPurchase.Description}'
+    AND Amount = {newPurchase.Amount}
+    AND CategoryId = {newCategoryId}"));
+    }
+
+    [Test]
+    public void UpdatePurchaseCategoryDoesNotExistTest()
+    {
+        // Arrange
+        string category = "TestCategory";
+
+        Purchase testPurchase = new Purchase
+        {
+            PurchaseId = 1,
+            Date = new DateTime(2023, 9, 21),
+            Description = "Test Description",
+            Amount = 123.45,
+            Category = category
+        };
+
+        // Act + Assert
+        Assert.ThrowsAsync<CategoryDoesNotExistException>(async () => await _budgetDatabaseContext.UpdatePurchaseAsync(testPurchase));
+    }
+
+    [Test]
+    public async Task UpdatePurchaseIdDoesNotExistTest()
+    {
+        // Arrange
+        string category = "TestCategory";
+        await AddCategory(1, category);
+
+        Purchase testPurchase = new Purchase
+        {
+            PurchaseId = 1,
+            Date = new DateTime(2023, 9, 21),
+            Description = "Test Description",
+            Amount = 123.45,
+            Category = category
+        };
+
+        // Act + Assert
+        Assert.ThrowsAsync<ArgumentException>(async () => await _budgetDatabaseContext.UpdatePurchaseAsync(testPurchase));
+    }
+
+    [Test]
+    public async Task DeletePurchaseTest()
+    {
+        // Arrange
+        int categoryId = 100;
+        string category = "TestCategory";
+
+        await AddCategory(categoryId, category);
+
+        Purchase testPurchase = new Purchase
+        {
+            PurchaseId = 1001,
+            Date = new DateTime(2023, 9, 21),
+            Description = "Test Description",
+            Amount = 123.45,
+            Category = category
+        };
+
+        await AddPurchase(testPurchase, new() { { category, categoryId } });
+
+        // Sanity check
+        Assert.That(await _sqlHelper.ExistsAsync(_config["BudgetDatabaseName"]!,
+$@"SELECT 1
+FROM Purchase
+WHERE
+    PurchaseId = {testPurchase.PurchaseId}
+    AND Date = '{testPurchase.Date}'
+    AND Description = '{testPurchase.Description}'
+    AND Amount = {testPurchase.Amount}
+    AND CategoryId = {categoryId}"));
+        
+        // Act
+        await _budgetDatabaseContext.DeletePurchaseAsync(testPurchase.PurchaseId);
+
+        // Assert
+        Assert.That(!await _sqlHelper.ExistsAsync(_config["BudgetDatabaseName"]!,
+$@"SELECT 1
+FROM Purchase
+WHERE
+    PurchaseId = {testPurchase.PurchaseId}
+    AND Date = '{testPurchase.Date}'
+    AND Description = '{testPurchase.Description}'
+    AND Amount = {testPurchase.Amount}
+    AND CategoryId = {categoryId}"));
+    }
+
+    [Test]
+    public void DeletePurchaseDoesNotExistTest()
+    {
+        // Act + Assert
+        Assert.ThrowsAsync<ArgumentException>(async () => await _budgetDatabaseContext.DeletePurchaseAsync(1001));
+    }
+
+    [Test]
     public async Task GetPurchasesTest()
     {
         // Arrange

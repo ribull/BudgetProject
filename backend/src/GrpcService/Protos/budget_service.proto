@@ -9,6 +9,8 @@ service BudgetService {
   rpc GetPurchases (GetPurchasesRequest) returns (GetPurchasesResponse);
   rpc GetMostCommonPurchases (GetMostCommonPurchasesRequest) returns (GetMostCommonPurchasesResponse);
   rpc AddPurchase (AddPurchaseRequest) returns (AddPurchaseResponse);
+  rpc UpdatePurchase (UpdatePurchaseRequest) returns (UpdatePurchaseResponse);
+  rpc DeletePurchase (DeletePurchaseRequest) returns (DeletePurchaseResponse);
   rpc AddCategory (AddCategoryRequest) returns (AddCategoryResponse);
   rpc DeleteCategory (DeleteCategoryRequest) returns (DeleteCategoryResponse);
   rpc UpdateCategory (UpdateCategoryRequest) returns (UpdateCategoryResponse);
@@ -49,6 +51,22 @@ message AddPurchaseRequest {
 }
 
 message AddPurchaseResponse { }
+
+message UpdatePurchaseRequest {
+  int32 purchase_id = 1;
+  google.protobuf.Timestamp date = 2;
+  string description = 3;
+  double amount = 4;
+  string category = 5;
+}
+
+message UpdatePurchaseResponse { }
+
+message DeletePurchaseRequest {
+  int32 purchase_id = 1;
+}
+
+message DeletePurchaseResponse { }
 
 message Purchase {
   int32 purchase_id = 1;

@@ -21,6 +21,8 @@ import { GRPC_PORT, REST_PORT } from '../helpers/Constants';
 import {
   addCategory,
   addPurchase,
+  deletePurchase,
+  editPurchase,
   getCategories,
   getPurchases,
   pollOnline,
@@ -67,6 +69,14 @@ ipcMain.handle('get-purchases', async (event, arg) =>
 
 ipcMain.handle('add-purchase', async (event, args) =>
   addPurchase(args, budgetService),
+);
+
+ipcMain.handle('edit-purchase', async (event, args) =>
+  editPurchase(args, budgetService),
+);
+
+ipcMain.handle('delete-purchase', async (event, arg) =>
+  deletePurchase(arg, budgetService),
 );
 
 ipcMain.handle('upload-file', async (event, arg) =>

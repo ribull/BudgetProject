@@ -200,6 +200,47 @@ VALUES
         }
     }
 
+    public async Task UpdatePurchaseAsync(Purchase purchase)
+    {
+        if (purchase.Category is null)
+        {
+            throw new ArgumentException("Category is null. You can only add a purchase with a category.");
+        }
+
+        if (!await DoesCategoryExistAsync(purchase.Category))
+        {
+            throw new CategoryDoesNotExistException(purchase.Category);
+        }
+
+        int modifiedRows = await _sqlHelper.ExecuteAsync(_budgetDatabaseName,
+$@"UPDATE Purchase
+SET
+    Date = @Date,
+    Description = @Description,
+    Amount = @Amount,
+    CategoryId = (SELECT CategoryId FROM Category WHERE Category = @Category)
+WHERE
+    PurchaseId = @PurchaseId", purchase);
+
+        if (modifiedRows == 0)
+        {
+            throw new ArgumentException("A purchase with that purchase id does not exist.");
+        }
+    }
+
+    public async Task DeletePurchaseAsync(int purchaseId)
+    {
+        int modifiedRows = await _sqlHelper.ExecuteAsync(_budgetDatabaseName,
+$@"DELETE FROM Purchase
+WHERE
+    PurchaseId = @purchaseId", new { purchaseId } );
+
+        if (modifiedRows == 0)
+        {
+            throw new ArgumentException("A purchase with that purchase id does not exist.");
+        }
+    }
+
     #endregion Purchase
 
     #region PayHistory

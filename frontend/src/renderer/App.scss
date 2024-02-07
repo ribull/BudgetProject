@@ -47,3 +47,34 @@ html {
 .field.is-grouped {
   gap: 10px;
 }
+
+.purchases-body {
+  .td-xsm {
+    width: 4em
+  }
+
+  .td-sm {
+    width: 8em
+  }
+
+  .td-med {
+    width: 16em
+  }
+
+  .td-lg {
+    width: 20em
+  }
+}
+
+.icon-button {
+  background-color: transparent;
+  border: none;
+  color: rgb(200, 200, 200);;
+  font-size: 16px;
+}
+
+.icon-button:hover {
+  transition: 0.2s;
+  color: rgb(100, 100, 100);
+  cursor: pointer;
+}

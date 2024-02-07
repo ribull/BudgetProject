@@ -28,6 +28,10 @@ public interface IBudgetDatabaseContext
 
     Task AddPurchasesAsync(IAsyncEnumerable<Purchase> purchases);
 
+    Task UpdatePurchaseAsync(Purchase purchase);
+
+    Task DeletePurchaseAsync(int purchaseId);
+
     #endregion Purchase
 
     #region PayHistory

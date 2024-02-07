@@ -161,6 +161,82 @@ async function addPurchase(
   });
 }
 
+async function editPurchase(
+  args: any,
+  budgetService: BudgetServiceClient | null,
+) {
+  return new Promise<void>((resolve, reject) => {
+    if (budgetService === null) {
+      reject(
+        new Error(
+          "The budget service is null, it's likely you have not set an api url",
+        ),
+      );
+    } else if (
+      isArray(args) &&
+      args.length >= 5 &&
+      isNumber(args[0]) &&
+      isDate(args[1]) &&
+      isString(args[2]) &&
+      isNumber(args[3]) &&
+      isString(args[4])
+    ) {
+      budgetService.updatePurchase(
+        {
+          purchaseId: args[0],
+          date: args[1],
+          description: args[2],
+          amount: args[3],
+          category: args[4],
+        },
+        (err) => {
+          if (err !== null) {
+            reject(
+              new Error(`An error occured while updating a purchase: ${err}`),
+            );
+          } else {
+            resolve();
+          }
+        },
+      );
+    } else {
+      reject(new Error('The passed argument is malformed'));
+    }
+  });
+}
+
+async function deletePurchase(
+  arg: any,
+  budgetService: BudgetServiceClient | null,
+) {
+  return new Promise<void>((resolve, reject) => {
+    if (budgetService === null) {
+      reject(
+        new Error(
+          "The budget service is null, it's likely you have not set an api url",
+        ),
+      );
+    } else if (isNumber(arg)) {
+      budgetService.deletePurchase(
+        {
+          purchaseId: arg,
+        },
+        (err) => {
+          if (err !== null) {
+            reject(
+              new Error(`An error occured while deleting a purchase: ${err}`),
+            );
+          } else {
+            resolve();
+          }
+        },
+      );
+    } else {
+      reject(new Error('The passed argument is malformed'));
+    }
+  });
+}
+
 async function uploadFile(arg: any, serverName: string | null) {
   return new Promise<UploadFileResponse>((resolve, reject) => {
     if (serverName === null) {
@@ -261,6 +337,8 @@ export {
   pollOnline,
   getPurchases,
   addPurchase,
+  editPurchase,
+  deletePurchase,
   uploadFile,
   addCategory,
   getCategories,

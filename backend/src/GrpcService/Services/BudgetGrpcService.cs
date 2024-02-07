@@ -63,6 +63,31 @@ public class BudgetGrpcService : BudgetService.BudgetServiceBase
         return new AddPurchaseResponse();
     }
 
+    public override async Task<UpdatePurchaseResponse> UpdatePurchase(UpdatePurchaseRequest request, ServerCallContext? context)
+    {
+        if (!await _budgetDatabaseContext.DoesCategoryExistAsync(request.Category))
+        {
+            throw new RpcException(new Status(StatusCode.NotFound, $"The category {request.Category} does not exist"));
+        }
+
+        await _budgetDatabaseContext.UpdatePurchaseAsync(new Domain.Models.Purchase
+        {
+            PurchaseId = request.PurchaseId,
+            Date = request.Date.ToDateTime(),
+            Description = request.Description,
+            Amount = request.Amount,
+            Category = request.Category
+        });
+
+        return new UpdatePurchaseResponse();
+    }
+
+    public override async Task<DeletePurchaseResponse> DeletePurchase(DeletePurchaseRequest request, ServerCallContext? context)
+    {
+        await _budgetDatabaseContext.DeletePurchaseAsync(request.PurchaseId);
+        return new DeletePurchaseResponse();
+    }
+
     public override async Task<AddCategoryResponse> AddCategory(AddCategoryRequest request, ServerCallContext? context)
     {
         if (await _budgetDatabaseContext.DoesCategoryExistAsync(request.Category))

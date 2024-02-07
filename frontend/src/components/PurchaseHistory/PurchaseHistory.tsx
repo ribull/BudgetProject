@@ -88,7 +88,7 @@ export default function PurchaseHistory({
                   category,
                 ]),
               )
-              .catch((err) =>setAddPurchaseError(err));
+              .catch((err) => setAddPurchaseError(err));
           } else {
             contextBridge.ipcRenderer
               .invoke('add-purchase', [date, description, amount, category])
@@ -107,6 +107,29 @@ export default function PurchaseHistory({
       <PurchasesTable
         maxRows={15}
         purchases={recentPurchases}
+        topPurchases={topPurchases}
+        existingCategories={existingCategories}
+        saveEditedPurchase={(purchaseId, date, description, amount, category) => {
+          if (!existingCategories.includes(category)) {
+            contextBridge.ipcRenderer
+              .invoke('add-category', category)
+              .then(async () =>
+                contextBridge.ipcRenderer.invoke('edit-purchase', [
+                  purchaseId,
+                  date,
+                  description,
+                  amount,
+                  category,
+                ]),
+              )
+              .catch((err) => console.log(err));
+          } else {
+            contextBridge.ipcRenderer
+              .invoke('edit-purchase', [purchaseId, date, description, amount, category])
+              .catch((err) => console.log(err));
+          }
+        }}
+        deleteRow={(purchaseId) => contextBridge.ipcRenderer.invoke('delete-purchase', purchaseId).catch(err => console.log(err))}
         requestOlderPurchases={() => console.log('requesting more purchases')}
       />
     </div>
