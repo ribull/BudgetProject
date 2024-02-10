@@ -82,7 +82,13 @@ export default function InsertPurchase({ onSubmit, topPurchases, existingCategor
       </Field>
       <Field>
         <Label className="aligning-label">Transparent</Label>
-        <Button onClick={() => onSubmit(date, description, parseFloat(amount), category)}>Add Purchase</Button>
+        <Button onClick={() => {
+          onSubmit(date, description, parseFloat(amount), category);
+          setDate(new Date());
+          setDescription('');
+          setAmount('');
+          setCategory('');
+        }}>Add Purchase</Button>
       </Field>
     </Field>
   );

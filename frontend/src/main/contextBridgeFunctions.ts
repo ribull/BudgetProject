@@ -1,5 +1,9 @@
 import { dialog } from 'electron';
-import { BudgetServiceClient, Purchase } from '../generated/budget_service';
+import {
+  BudgetServiceClient,
+  PayHistory,
+  Purchase,
+} from '../generated/budget_service';
 import {
   // eslint-disable-next-line camelcase
   HealthCheckResponse_ServingStatus,
@@ -333,6 +337,154 @@ async function addCategory(
   });
 }
 
+async function getPayHistories(budgetService: BudgetServiceClient | null) {
+  return new Promise<PayHistory[]>((resolve, reject) => {
+    if (budgetService === null) {
+      reject(
+        new Error(
+          "The budget service is null, it's likely you have not set an api url",
+        ),
+      );
+    } else {
+      budgetService.getPayHistories({}, (err, response) => {
+        if (err !== null) {
+          reject(
+            new Error(`An error occurred while getting pay histories: ${err}`),
+          );
+        } else {
+          resolve(response.payHistories);
+        }
+      });
+    }
+  });
+}
+
+async function addPayHistory(
+  args: any,
+  budgetService: BudgetServiceClient | null,
+) {
+  return new Promise<void>((resolve, reject) => {
+    if (budgetService === null) {
+      reject(
+        new Error(
+          "The budget service is null, it's likely you have not set an api url",
+        ),
+      );
+    } else if (
+      isArray(args) &&
+      isDate(args[0]) &&
+      isDate(args[1]) &&
+      isNumber(args[2]) &&
+      isNumber(args[3]) &&
+      isNumber(args[4]) &&
+      isNumber(args[5])
+    ) {
+      budgetService.addPayHistory(
+        {
+          payPeriodStartDate: args[0],
+          payPeriodEndDate: args[1],
+          earnings: args[2],
+          preTaxDeductions: args[3],
+          taxes: args[4],
+          postTaxDeductions: args[5],
+        },
+        (err) => {
+          if (err !== null) {
+            reject(
+              new Error(`An error occurred while adding a pay history: ${err}`),
+            );
+          } else {
+            resolve();
+          }
+        },
+      );
+    } else {
+      reject(new Error(`The passed arguments are invalid`));
+    }
+  });
+}
+
+async function editPayHistory(
+  args: any,
+  budgetService: BudgetServiceClient | null,
+) {
+  return new Promise<void>((resolve, reject) => {
+    if (budgetService === null) {
+      reject(
+        new Error(
+          "The budget service is null, it's likely you have not set an api url",
+        ),
+      );
+    } else if (
+      isArray(args) &&
+      isNumber(args[0]) &&
+      isDate(args[1]) &&
+      isDate(args[2]) &&
+      isNumber(args[3]) &&
+      isNumber(args[4]) &&
+      isNumber(args[5]) &&
+      isNumber(args[6])
+    ) {
+      budgetService.updatePayHistory(
+        {
+          payHistoryId: args[0],
+          payPeriodStartDate: args[1],
+          payPeriodEndDate: args[2],
+          earnings: args[3],
+          preTaxDeductions: args[4],
+          taxes: args[5],
+          postTaxDeductions: args[6],
+        },
+        (err) => {
+          if (err !== null) {
+            reject(
+              new Error(`An error occurred while adding a pay history: ${err}`),
+            );
+          } else {
+            resolve();
+          }
+        },
+      );
+    } else {
+      reject(new Error(`The passed arguments are invalid`));
+    }
+  });
+}
+
+async function deletePayHistory(
+  arg: any,
+  budgetService: BudgetServiceClient | null,
+) {
+  return new Promise<void>((resolve, reject) => {
+    if (budgetService === null) {
+      reject(
+        new Error(
+          "The budget service is null, it's likely you have not set an api url",
+        ),
+      );
+    } else if (isNumber(arg)) {
+      budgetService.deletePayHistory(
+        {
+          payHistoryId: arg,
+        },
+        (err) => {
+          if (err !== null) {
+            reject(
+              new Error(
+                `An error occurred while deleting a pay history: ${err}`,
+              ),
+            );
+          } else {
+            resolve();
+          }
+        },
+      );
+    } else {
+      reject(new Error(`The passed arguments are invalid`));
+    }
+  });
+}
+
 export {
   pollOnline,
   getPurchases,
@@ -342,4 +494,8 @@ export {
   uploadFile,
   addCategory,
   getCategories,
+  getPayHistories,
+  addPayHistory,
+  editPayHistory,
+  deletePayHistory,
 };

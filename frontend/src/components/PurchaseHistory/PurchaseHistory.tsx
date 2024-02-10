@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react';
-import { Notification, Button } from 'react-bulma-components';
+import { useCallback, useEffect, useState } from 'react';
 import { ElectronHandler } from '../../main/preload';
 import { PurchaseFilter, PurchaseFilterType } from '../../types/PurchaseFilter';
 import { isPurchaseArray, isStringArray } from '../../helpers/TypeSafety';
 import InsertPurchase from './InsertPurchase';
 import { Purchase } from '../../generated/budget_service';
 import PurchasesTable from './PurchasesTable';
+import UploadCsv from './UploadCsv';
+import { UploadType } from '../../types/UploadFile';
 
 interface PurchaseHistoryProps {
   isConnected: boolean;
@@ -20,116 +21,147 @@ export default function PurchaseHistory({
   const [topPurchases, setTopPurchases] = useState<Purchase[]>([]);
   const [existingCategories, setExistingCategories] = useState<string[]>([]);
 
-  const [addPurchaseError, setAddPurchaseError] = useState('');
+  async function addPurchase(
+    date: Date,
+    description: string,
+    amount: number,
+    category: string,
+  ) {
+    if (!existingCategories.includes(category)) {
+      await contextBridge.ipcRenderer.invoke('add-category', category);
+    }
+
+    await contextBridge.ipcRenderer.invoke('add-purchase', [
+      date,
+      description,
+      amount,
+      category,
+    ]);
+  }
+
+  const editPurchase = useCallback(
+    async (
+      purchaseId: number,
+      date: Date,
+      description: string,
+      amount: number,
+      category: string,
+    ) => {
+      if (!existingCategories.includes(category)) {
+        await contextBridge.ipcRenderer.invoke('add-category', category);
+      }
+
+      await contextBridge.ipcRenderer.invoke('edit-purchase', [
+        purchaseId,
+        date,
+        description,
+        amount,
+        category,
+      ]);
+    },
+    [contextBridge],
+  );
+
+  const getRecentPurchases = useCallback(
+    async (purchaseFilter: PurchaseFilter): Promise<Purchase[]> => {
+    if (isConnected) {
+      const purchasesResp = await contextBridge.ipcRenderer.invoke('get-purchases', purchaseFilter);
+      if (isPurchaseArray(purchasesResp)) {
+        return purchasesResp;
+      }
+    }
+
+    return [];
+  }, [contextBridge, isConnected]);
+
+  const refreshPurchaseData = useCallback(() => {
+    console.log('refreshing...');
+    const startTime = new Date();
+    startTime.setMonth(startTime.getMonth() - 3);
+    const getRecentPurchasesRequest: PurchaseFilter = {
+      startTime,
+      purchaseFilterType: PurchaseFilterType.All,
+    };
+
+    getRecentPurchases(getRecentPurchasesRequest)
+      .then((purchases) => setRecentPurchases(purchases))
+      .catch((err) =>
+        console.log(`Couldn't retrieve recent purchases: ${err}`),
+      );
+
+    const getTopPurchasesRequest: PurchaseFilter = {
+      count: 40,
+      purchaseFilterType: PurchaseFilterType.MostCommon,
+    };
+
+    getRecentPurchases(getTopPurchasesRequest)
+      .then((purchases) => setTopPurchases(purchases))
+      .catch((err) => console.log(`Couldn't retrieve top purchases: ${err}`));
+
+    contextBridge.ipcRenderer
+      .invoke('get-categories')
+      .then((result) => {
+        if (isStringArray(result)) {
+          setExistingCategories(result);
+        }
+
+        return true;
+      })
+      .catch((err) => console.log(`Couldn't retrieve categories: ${err}`));
+  }, [contextBridge, getRecentPurchases]);
 
   useEffect(() => {
     if (isConnected) {
-      const startTime = new Date();
-      startTime.setMonth(startTime.getMonth() - 3);
-      const getRecentPurchasesRequest: PurchaseFilter = {
-        startTime,
-        purchaseFilterType: PurchaseFilterType.All,
-      };
-
-      contextBridge.ipcRenderer
-        .invoke('get-purchases', getRecentPurchasesRequest)
-        .then((result) => {
-          if (isPurchaseArray(result)) {
-            setRecentPurchases(result);
-          }
-
-          return true;
-        })
-        .catch((err) =>
-          console.log(`Couldn't retrieve recent purchases: ${err}`),
-        );
-
-      const getTopPurchasesRequest: PurchaseFilter = {
-        count: 40,
-        purchaseFilterType: PurchaseFilterType.MostCommon,
-      };
-
-      contextBridge.ipcRenderer
-        .invoke('get-purchases', getTopPurchasesRequest)
-        .then((result) => {
-          if (isPurchaseArray(result)) {
-            setTopPurchases(result);
-          }
-
-          return true;
-        })
-        .catch((err) => console.log(`Couldn't retrieve top purchases: ${err}`));
-
-      contextBridge.ipcRenderer
-        .invoke('get-categories')
-        .then((result) => {
-          if (isStringArray(result)) {
-            setExistingCategories(result);
-          }
-
-          return true;
-        })
-        .catch((err) => console.log(`Couldn't retrieve categories: ${err}`));
+      refreshPurchaseData();
     }
-  }, [contextBridge, isConnected]);
+  }, [contextBridge, refreshPurchaseData, isConnected]);
 
   return (
     <div>
       <InsertPurchase
-        onSubmit={(date, description, amount, category) => {
-          if (!existingCategories.includes(category)) {
-            contextBridge.ipcRenderer
-              .invoke('add-category', category)
-              .then(async () =>
-                contextBridge.ipcRenderer.invoke('add-purchase', [
-                  date,
-                  description,
-                  amount,
-                  category,
-                ]),
-              )
-              .catch((err) => setAddPurchaseError(err));
-          } else {
-            contextBridge.ipcRenderer
-              .invoke('add-purchase', [date, description, amount, category])
-              .catch((err) => setAddPurchaseError(err));
-          }
-        }}
+        onSubmit={(date, description, amount, category) =>
+          addPurchase(date, description, amount, category)
+            .then(() => refreshPurchaseData())
+            .catch((err) =>
+              console.log(`An error occured while inserting purchase: ${err}`),
+            )
+        }
         topPurchases={topPurchases}
         existingCategories={existingCategories}
       />
-      {addPurchaseError !== '' && (
-        <Notification color="warning">
-          {`An error occured while adding a purchase: ${addPurchaseError}`}
-          <Button remove />
-        </Notification>
-      )}
+      <UploadCsv
+        onSubmit={() =>
+          contextBridge.ipcRenderer
+            .invoke('upload-file', {
+              fileType: 'csv',
+              uploadType: UploadType.Purchase,
+            })
+            .then(() => refreshPurchaseData())
+            .catch((err) =>
+              console.log(`An error occurred while upload the csv: ${err}`),
+            )
+        }
+      />
       <PurchasesTable
         maxRows={15}
         purchases={recentPurchases}
         topPurchases={topPurchases}
         existingCategories={existingCategories}
-        saveEditedPurchase={(purchaseId, date, description, amount, category) => {
-          if (!existingCategories.includes(category)) {
-            contextBridge.ipcRenderer
-              .invoke('add-category', category)
-              .then(async () =>
-                contextBridge.ipcRenderer.invoke('edit-purchase', [
-                  purchaseId,
-                  date,
-                  description,
-                  amount,
-                  category,
-                ]),
-              )
-              .catch((err) => console.log(err));
-          } else {
-            contextBridge.ipcRenderer
-              .invoke('edit-purchase', [purchaseId, date, description, amount, category])
-              .catch((err) => console.log(err));
-          }
-        }}
-        deleteRow={(purchaseId) => contextBridge.ipcRenderer.invoke('delete-purchase', purchaseId).catch(err => console.log(err))}
+        saveEditedPurchase={(purchaseId, date, description, amount, category) =>
+          editPurchase(purchaseId, date, description, amount, category)
+            .then(() => refreshPurchaseData())
+            .catch((err) =>
+              console.log(
+                `An error occured while editing the purchase: ${err}`,
+              ),
+            )
+        }
+        deleteRow={(purchaseId) =>
+          contextBridge.ipcRenderer
+            .invoke('delete-purchase', purchaseId)
+            .then(() => refreshPurchaseData())
+            .catch((err) => console.log(err))
+        }
         requestOlderPurchases={() => console.log('requesting more purchases')}
       />
     </div>

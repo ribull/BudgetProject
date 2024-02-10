@@ -190,7 +190,7 @@ VALUES
 
                 if (!await DoesCategoryExistAsync(purchase.Category))
                 {
-                    throw new CategoryDoesNotExistException(purchase.Category);
+                    await AddCategoryAsync(purchase.Category);
                 }
 
                 await AddPurchaseAsync(purchase);
@@ -294,14 +294,27 @@ VALUES
         }
     }
 
+    public async Task UpdatePayHistoryAsync(PayHistory payHistory)
+    {
+        await _sqlHelper.ExecuteAsync(_budgetDatabaseName,
+@"UPDATE PayHistory SET
+    PayPeriodStartDate = @PayPeriodStartDate,
+    PayPeriodEndDate = @PayPeriodEndDate,
+    Earnings = @Earnings,
+    PreTaxDeductions = @PreTaxDeductions,
+    Taxes = @Taxes,
+    PostTaxDeductions = @PostTaxDeductions
+WHERE PayHistoryId = @PayHistoryId", payHistory);
+    }
+
     public async Task<bool> DoesPayHistoryExistAsync(int payHistoryId)
     {
-        return await _sqlHelper.ExistsAsync(_budgetDatabaseName, "SELECT 1 FROM PayHistory WHERE PayHistoryId = @payHistoryId", new { payHistoryId = payHistoryId });
+        return await _sqlHelper.ExistsAsync(_budgetDatabaseName, "SELECT 1 FROM PayHistory WHERE PayHistoryId = @payHistoryId", new { payHistoryId });
     }
 
     public async Task DeletePayHistoryAsync(int payHistoryId)
     {
-        await _sqlHelper.ExecuteAsync(_budgetDatabaseName, "DELETE FROM PayHistory WHERE PayHistoryId = @payHistoryId", new { payHistoryId = payHistoryId });
+        await _sqlHelper.ExecuteAsync(_budgetDatabaseName, "DELETE FROM PayHistory WHERE PayHistoryId = @payHistoryId", new { payHistoryId });
     }
 
     public async Task<IEnumerable<PayHistory>> GetPayHistoriesAsync(DateTime? startDate = null, DateTime? endDate = null)

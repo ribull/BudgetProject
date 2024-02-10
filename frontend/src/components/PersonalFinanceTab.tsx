@@ -2,6 +2,7 @@ import { Block, Columns, Menu } from 'react-bulma-components';
 import { useState } from 'react';
 import { ElectronHandler } from '../main/preload';
 import PurchaseHistory from './PurchaseHistory/PurchaseHistory';
+import PayHistoryHistory from './PayHistory/PayHistoryHistory';
 
 enum PersonalFinanceSections {
   Record = 'Record',
@@ -61,6 +62,10 @@ export default function PersonalFinanceTab({
           {selectedSection?.section === PersonalFinanceSections.Record &&
             selectedSection.subsection === 'Purchase History' && (
               <PurchaseHistory contextBridge={contextBridge} isConnected={isConnected} />
+            )}
+          {selectedSection?.section === PersonalFinanceSections.Record &&
+            selectedSection.subsection === 'Pay History' && (
+              <PayHistoryHistory contextBridge={contextBridge} isConnected={isConnected} />
             )}
         </Block>
       </Columns.Column>

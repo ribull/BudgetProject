@@ -149,6 +149,22 @@ public class BudgetGrpcService : BudgetService.BudgetServiceBase
         return new AddPayHistoryResponse();
     }
 
+    public override async Task<UpdatePayHistoryResponse> UpdatePayHistory(UpdatePayHistoryRequest request, ServerCallContext? context)
+    {
+        await _budgetDatabaseContext.UpdatePayHistoryAsync(new Domain.Models.PayHistory
+        {
+            PayHistoryId = request.PayHistoryId,
+            PayPeriodStartDate = request.PayPeriodStartDate.ToDateTime(),
+            PayPeriodEndDate = request.PayPeriodEndDate.ToDateTime(),
+            Earnings = request.Earnings,
+            PreTaxDeductions = request.PreTaxDeductions,
+            Taxes = request.Taxes,
+            PostTaxDeductions = request.PostTaxDeductions
+        });
+
+        return new UpdatePayHistoryResponse();
+    }
+
     public override async Task<DeletePayHistoryResponse> DeletePayHistory(DeletePayHistoryRequest request, ServerCallContext? context)
     {
         if (!await _budgetDatabaseContext.DoesPayHistoryExistAsync(request.PayHistoryId))

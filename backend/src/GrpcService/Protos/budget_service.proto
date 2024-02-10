@@ -16,6 +16,7 @@ service BudgetService {
   rpc UpdateCategory (UpdateCategoryRequest) returns (UpdateCategoryResponse);
   rpc GetCategories (GetCategoriesRequest) returns (GetCategoriesResponse);
   rpc AddPayHistory (AddPayHistoryRequest) returns (AddPayHistoryResponse);
+  rpc UpdatePayHistory (UpdatePayHistoryRequest) returns (UpdatePayHistoryResponse);
   rpc DeletePayHistory (DeletePayHistoryRequest) returns (DeletePayHistoryResponse);
   rpc GetPayHistories (GetPayHistoriesRequest) returns (GetPayHistoriesResponse);
   rpc GetPayHistoriesForMonth (GetPayHistoriesForMonthRequest) returns (GetPayHistoriesForMonthResponse);
@@ -111,6 +112,18 @@ message AddPayHistoryRequest {
 }
 
 message AddPayHistoryResponse { }
+
+message UpdatePayHistoryRequest {
+  int32 pay_history_id = 1;
+  google.protobuf.Timestamp pay_period_start_date = 2;
+  google.protobuf.Timestamp pay_period_end_date = 3;
+  double earnings = 4;
+  double pre_tax_deductions = 5;
+  double taxes = 6;
+  double post_tax_deductions = 7;
+}
+
+message UpdatePayHistoryResponse { }
 
 message DeletePayHistoryRequest {
   int32 pay_history_id = 1;

@@ -20,10 +20,14 @@ import { HealthClient } from '../generated/health_check';
 import { GRPC_PORT, REST_PORT } from '../helpers/Constants';
 import {
   addCategory,
+  addPayHistory,
   addPurchase,
+  deletePayHistory,
   deletePurchase,
+  editPayHistory,
   editPurchase,
   getCategories,
+  getPayHistories,
   getPurchases,
   pollOnline,
   uploadFile,
@@ -87,6 +91,20 @@ ipcMain.handle('get-categories', async () => getCategories(budgetService));
 
 ipcMain.handle('add-category', async (event, arg) =>
   addCategory(arg, budgetService),
+);
+
+ipcMain.handle('get-pay-histories', async () => getPayHistories(budgetService));
+
+ipcMain.handle('add-pay-history', async (event, args) =>
+  addPayHistory(args, budgetService),
+);
+
+ipcMain.handle('edit-pay-history', async (event, args) =>
+  editPayHistory(args, budgetService),
+);
+
+ipcMain.handle('delete-pay-history', async (event, arg) =>
+  deletePayHistory(arg, budgetService),
 );
 
 if (process.env.NODE_ENV === 'production') {

@@ -10,6 +10,7 @@ import ConnectedFooter from '../components/ConnectedFooter';
 import { ElectronHandler } from '../main/preload';
 import { isApiConnected } from '../helpers/TypeSafety';
 import PersonalFinanceTab from '../components/PersonalFinanceTab';
+import IconButton from '../components/IconButton';
 
 enum ActiveTabs {
   PersonalFinance = 'Personal Finance',
@@ -43,14 +44,13 @@ function MainPage({ contextBridge }: MainPageArgs) {
               (result) => {
                 if (isApiConnected(result)) {
                   setIsConnected(result.connected);
-                  console.log(result.message);
                 }
 
                 return null;
               },
               (err) => console.log(err),
             ),
-        3000,
+        1500,
       );
     }
 
@@ -79,13 +79,10 @@ function MainPage({ contextBridge }: MainPageArgs) {
           </Navbar.Container>
           <Navbar.Container align="right">
             <Navbar.Item>
-              <Button text={false} outlined={false}>
-                <span>
-                  <Icon onClick={() => setSettingsWindowVisible(true)}>
-                    <FontAwesomeIcon icon={faGear} />
-                  </Icon>
-                </span>
-              </Button>
+              <IconButton
+                fontAwesomeIcon={faGear}
+                onClick={() => setSettingsWindowVisible(true)}
+              />
             </Navbar.Item>
           </Navbar.Container>
         </Navbar.Menu>

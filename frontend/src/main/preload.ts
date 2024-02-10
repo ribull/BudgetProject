@@ -11,7 +11,11 @@ export type Channels =
   | 'edit-purchase'
   | 'delete-purchase'
   | 'add-category'
-  | 'get-categories';
+  | 'get-categories'
+  | 'get-pay-histories'
+  | 'add-pay-history'
+  | 'edit-pay-history'
+  | 'delete-pay-history';
 
 const electronHandler = {
   ipcRenderer: {

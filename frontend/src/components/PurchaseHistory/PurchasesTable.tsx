@@ -51,8 +51,9 @@ export default function PurchasesTable({
   const [editAmount, setEditAmount] = useState('');
   const [editCategory, setEditCategory] = useState('');
 
-  const savePurchaseCallback = useCallback(
-    (purchaseId: number) => {
+  function savePurchaseCallback(purchaseId: number) {
+    const amt = parseFloat(editAmount);
+    if (!Number.isNaN(amt)) {
       saveEditedPurchase(
         purchaseId,
         editDate,
@@ -60,9 +61,8 @@ export default function PurchasesTable({
         parseFloat(editAmount),
         editCategory,
       );
-    },
-    [editDate, editDescription, editAmount, editCategory, saveEditedPurchase],
-  );
+    }
+  }
 
   const isEditAmountValid = !Number.isNaN(parseFloat(editAmount));
   const editCategoryIsWarn = existingCategories.includes(editCategory);
@@ -188,9 +188,10 @@ export default function PurchasesTable({
               <>
                 <IconButton
                   fontAwesomeIcon={faFloppyDisk}
-                  onClick={() =>
-                    savePurchaseCallback(sortedPurchases[i].purchaseId)
-                  }
+                  onClick={() => {
+                    savePurchaseCallback(sortedPurchases[i].purchaseId);
+                    setEditedRow(undefined);
+                  }}
                 />
                 <IconButton
                   fontAwesomeIcon={faXmark}

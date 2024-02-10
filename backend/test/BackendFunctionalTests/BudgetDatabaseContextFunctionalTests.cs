@@ -2,11 +2,14 @@
 using Backend.Implementations;
 using Backend.Interfaces;
 using BudgetDatabase.Deployer;
+using BudgetProto;
 using Domain.Models;
 using Microsoft.Extensions.Configuration;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
 using Testcontainers.PostgreSql;
+using PayHistory = Domain.Models.PayHistory;
+using Purchase = Domain.Models.Purchase;
 
 namespace BackendFunctionalTests;
 
@@ -274,8 +277,6 @@ WHERE
     {
         // Arrange
         string category = "TestCategory";
-        int categoryId = 100;
-        await AddCategory(categoryId, category);
 
         async IAsyncEnumerable<Purchase> GetAsyncPurchases()
         {
@@ -300,14 +301,14 @@ WHERE
                 Date = new DateTime(2023, 9, 23),
                 Description = "Test Description3",
                 Amount = 1234.56,
-                Category = "Non-existing Category"
+                Category = null
             };
 
             await Task.CompletedTask;
         };
 
         // Act + Assert
-        Assert.ThrowsAsync<CategoryDoesNotExistException>(async () => await _budgetDatabaseContext.AddPurchasesAsync(GetAsyncPurchases()));
+        Assert.ThrowsAsync<ArgumentException>(async () => await _budgetDatabaseContext.AddPurchasesAsync(GetAsyncPurchases()));
 
         // Make sure the transaction rolled back
         Assert.That((await _sqlHelper.QueryAsync<int>(_config["BudgetDatabaseName"]!, "SELECT COUNT(*) FROM Purchase")).Single(), Is.EqualTo(0));
@@ -925,6 +926,62 @@ WHERE
 
         // Assert
         Assert.That((await _sqlHelper.QueryAsync<int>(_config["BudgetDatabaseName"]!, "SELECT COUNT(*) FROM PayHistory")).Single(), Is.EqualTo(3));
+    }
+
+    [Test]
+    public async Task UpdatePayHistoryTest()
+    {
+        // Arrange
+        PayHistory originalPayHistory = new()
+        {
+            PayHistoryId = 1001,
+            PayPeriodStartDate = new DateTime(2023, 10, 1),
+            PayPeriodEndDate = new DateTime(2023, 10, 15),
+            Earnings = 12345.67,
+            PreTaxDeductions = 9876.54,
+            Taxes = 321.09,
+            PostTaxDeductions = 87.65
+        };
+
+        await InsertPayHistory(originalPayHistory);
+
+        // Sanity check
+        Assert.That(await _sqlHelper.ExistsAsync(_config["BudgetDatabaseName"]!,
+$@"SELECT 1 FROM PayHistory
+WHERE
+    PayHistoryId = {originalPayHistory.PayHistoryId}
+    AND PayPeriodStartDate = '{originalPayHistory.PayPeriodStartDate}'
+    AND PayPeriodEndDate = '{originalPayHistory.PayPeriodEndDate}'
+    AND Earnings = {originalPayHistory.Earnings}
+    AND PreTaxDeductions = {originalPayHistory.PreTaxDeductions}
+    AND Taxes = {originalPayHistory.Taxes}
+    AND PostTaxDeductions = {originalPayHistory.PostTaxDeductions}"));
+
+        PayHistory newPayHistory = new()
+        {
+            PayHistoryId = originalPayHistory.PayHistoryId,
+            PayPeriodStartDate = new DateTime(2023, 12, 1),
+            PayPeriodEndDate = new DateTime(2023, 12, 15),
+            Earnings = 4321.01,
+            PreTaxDeductions = 998.1,
+            Taxes = 1.0,
+            PostTaxDeductions = 0.99,
+        };
+
+        // Act
+        await _budgetDatabaseContext.UpdatePayHistoryAsync(newPayHistory);
+
+        // Assert
+        Assert.That(await _sqlHelper.ExistsAsync(_config["BudgetDatabaseName"]!,
+$@"SELECT 1 FROM PayHistory
+WHERE
+    PayHistoryId = {originalPayHistory.PayHistoryId}
+    AND PayPeriodStartDate = '{newPayHistory.PayPeriodStartDate}'
+    AND PayPeriodEndDate = '{newPayHistory.PayPeriodEndDate}'
+    AND Earnings = {newPayHistory.Earnings}
+    AND PreTaxDeductions = {newPayHistory.PreTaxDeductions}
+    AND Taxes = {newPayHistory.Taxes}
+    AND PostTaxDeductions = {newPayHistory.PostTaxDeductions}"));
     }
 
     [Test]

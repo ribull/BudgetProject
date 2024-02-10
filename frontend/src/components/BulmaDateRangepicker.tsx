@@ -6,26 +6,33 @@ import { Size } from 'react-bulma-components/src/components';
 
 const { Input } = Form;
 
-interface BulmaDatepickerProps {
-  onSelect: (date: Date) => void;
+interface BulmaDateRangepickerProps {
+  onSelect: (startDate: Date, endDate: Date) => void;
   size?: Size;
-  initialValue?: Date;
+  initialStartValue?: Date;
+  initialEndValue?: Date;
 }
 
-export default function BulmaDatepicker({
+export default function BulmaDateRangepicker({
   onSelect,
   size,
-  initialValue,
-}: BulmaDatepickerProps) {
+  initialStartValue,
+  initialEndValue,
+}: BulmaDateRangepickerProps) {
   useEffect(() => {
     const calendars = bulmaCalendar.attach('[type="date"]', {
-      startDate: initialValue,
+      startDate: initialStartValue,
+      endDate: initialEndValue,
+      isRange: true,
     });
 
     for (let i = 0; i < calendars.length; i += 1) {
       calendars[i].on('select', (date) => {
-        if (date.data.date.start !== undefined) {
-          onSelect(date.data.date.start);
+        if (
+          date.data.date.start !== undefined &&
+          date.data.date.end !== undefined
+        ) {
+          onSelect(date.data.date.start, date.data.date.end);
         }
       });
     }

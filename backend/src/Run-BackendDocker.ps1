@@ -16,7 +16,7 @@ cd ..
 
 # Then we'll start the docker containers
 # Postgres
-docker run -d `
+$postgresContainerId = docker run -d `
 	--name budget-database-postgres `
 	-e POSTGRES_PASSWORD=$postgresPassword `
 	-v $dataFiles`:"/var/lib/postgresql/data" `
@@ -26,14 +26,14 @@ docker run -d `
 # Wait for Postgres
 do
 {
-    $isActive = docker exec budget-database-postgres pg_isready -U $postgresUsername
+    $out = docker exec budget-database-postgres pg_isready -U $postgresUsername
+    $isActive = $out.Split([Environment]::NewLine)[-1]
     $isActive
-} While($isActive -ne "/var/run/postgresql:5432 - accepting connections")
+} While($isActive -notcontains "/var/run/postgresql:5432 - accepting connections")
 
 # Get the ip from the postgres container
-$postgresServername = docker inspect -f `
-    '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' `
-    budget-database-postgres
+$out = docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $postgresContainerId 
+$postgresServername = $out.Split([Environment]::NewLine)[-1]
 
 # DbUp
 docker run `

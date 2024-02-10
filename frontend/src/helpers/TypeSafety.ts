@@ -1,4 +1,4 @@
-import { Purchase } from '../generated/budget_service';
+import { PayHistory, Purchase } from '../generated/budget_service';
 import ApiConnected from '../types/ApiConnected';
 import AppConstants from '../types/AppConstants';
 import { PurchaseFilter, PurchaseFilterType } from '../types/PurchaseFilter';
@@ -99,6 +99,26 @@ function isPurchaseArray(value: unknown): value is Purchase[] {
   return false;
 }
 
+function isPayHistory(value: unknown): value is PayHistory {
+  const convertedValue = value as PayHistory;
+  return (
+    convertedValue.payPeriodStartDate !== undefined &&
+    convertedValue.payPeriodEndDate !== undefined &&
+    convertedValue.earnings !== undefined &&
+    convertedValue.preTaxDeductions !== undefined &&
+    convertedValue.taxes !== undefined &&
+    convertedValue.postTaxDeductions !== undefined
+  );
+}
+
+function isPayHistoryArray(value: unknown): value is PayHistory[] {
+  if (isArray(value)) {
+    return value.every((val) => isPayHistory(val));
+  }
+
+  return false;
+}
+
 export {
   isArray,
   isBoolean,
@@ -115,4 +135,5 @@ export {
   isStringArray,
   isPurchase,
   isPurchaseArray,
+  isPayHistoryArray,
 };
