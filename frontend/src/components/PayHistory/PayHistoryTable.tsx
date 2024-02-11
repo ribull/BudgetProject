@@ -12,6 +12,7 @@ import {
 import { PayHistory } from '../../generated/budget_service';
 import IconButton from '../IconButton';
 import BulmaDatepicker from '../BulmaDatepicker';
+import formatDate from '../../helpers/DateFormatter';
 
 const { Input } = Form;
 
@@ -110,7 +111,7 @@ export default function PurchasesTable({
             key={`pay-history-table-cell-sdate-${sortedPayHistories[i].payHistoryId}`}
           >
             {notEditing ? (
-              sortedPayHistories[i].payPeriodStartDate?.toLocaleDateString()
+              formatDate(sortedPayHistories[i].payPeriodStartDate)
             ) : (
               <BulmaDatepicker
                 onSelect={(newDate) => setEditStartDate(newDate)}

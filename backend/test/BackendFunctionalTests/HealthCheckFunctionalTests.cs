@@ -25,10 +25,10 @@ public class HealthCheckFunctionalTests
         .AddInMemoryCollection(new Dictionary<string, string?>()
         {
                 { "BudgetDatabaseName", "budgetdb" },
-                { "PostgreSqlConnectionSettings:ServerName",  postgreSqlContainer.Hostname },
-                { "PostgreSqlConnectionSettings:Username", "postgres" },
-                { "PostgreSqlConnectionSettings:Password", "postgres" },
-                { "PostgreSqlConnectionSettings:Port", $"{postgreSqlContainer.GetMappedPublicPort(5432)}" }
+                { "PostgreSqlConnectionDetails:ServerName",  postgreSqlContainer.Hostname },
+                { "PostgreSqlConnectionDetails:Username", "postgres" },
+                { "PostgreSqlConnectionDetails:Password", "postgres" },
+                { "PostgreSqlConnectionDetails:Port", $"{postgreSqlContainer.GetMappedPublicPort(5432)}" }
         }).Build();
 
         ISqlConnectionStringBuilder connectionStringBuilder = new UsernamePasswordPostgresConnectionStringBuilder(config);
@@ -62,10 +62,10 @@ public class HealthCheckFunctionalTests
         .AddInMemoryCollection(new Dictionary<string, string?>()
         {
                 { "BudgetDatabaseName", "budgetdb" },
-                { "PostgreSqlConnectionSettings:ServerName",  postgreSqlContainer.Hostname },
-                { "PostgreSqlConnectionSettings:Username", "postgres" },
-                { "PostgreSqlConnectionSettings:Password", "postgres" },
-                { "PostgreSqlConnectionSettings:Port", $"{postgreSqlContainer.GetMappedPublicPort(5432)}" }
+                { "PostgreSqlConnectionDetails:ServerName",  postgreSqlContainer.Hostname },
+                { "PostgreSqlConnectionDetails:Username", "postgres" },
+                { "PostgreSqlConnectionDetails:Password", "postgres" },
+                { "PostgreSqlConnectionDetails:Port", $"{postgreSqlContainer.GetMappedPublicPort(5432)}" }
         }).Build();
 
         ISqlConnectionStringBuilder connectionStringBuilder = new UsernamePasswordPostgresConnectionStringBuilder(config);
@@ -100,10 +100,10 @@ public class HealthCheckFunctionalTests
         .AddInMemoryCollection(new Dictionary<string, string?>()
         {
                 { "BudgetDatabaseName", "budgetdb" },
-                { "PostgreSqlConnectionSettings:ServerName",  postgreSqlContainer.Hostname },
-                { "PostgreSqlConnectionSettings:Username", username },
-                { "PostgreSqlConnectionSettings:Password", password },
-                { "PostgreSqlConnectionSettings:Port", $"{postgreSqlContainer.GetMappedPublicPort(5432)}" }
+                { "PostgreSqlConnectionDetails:ServerName",  postgreSqlContainer.Hostname },
+                { "PostgreSqlConnectionDetails:Username", username },
+                { "PostgreSqlConnectionDetails:Password", password },
+                { "PostgreSqlConnectionDetails:Port", $"{postgreSqlContainer.GetMappedPublicPort(5432)}" }
         }).Build();
 
         ISqlConnectionStringBuilder connectionStringBuilder = new UsernamePasswordPostgresConnectionStringBuilder(config);
@@ -130,10 +130,10 @@ public class HealthCheckFunctionalTests
         .AddInMemoryCollection(new Dictionary<string, string?>()
         {
                 { "BudgetDatabaseName", "budgetdb" },
-                { "PostgreSqlConnectionSettings:ServerName",  "irrelevant" },
-                { "PostgreSqlConnectionSettings:Username", "postgres" },
-                { "PostgreSqlConnectionSettings:Password", "postgres" },
-                { "PostgreSqlConnectionSettings:Port", "1234" }
+                { "PostgreSqlConnectionDetails:ServerName",  "irrelevant" },
+                { "PostgreSqlConnectionDetails:Username", "postgres" },
+                { "PostgreSqlConnectionDetails:Password", "postgres" },
+                { "PostgreSqlConnectionDetails:Port", "1234" }
         }).Build();
 
         ISqlConnectionStringBuilder connectionStringBuilder = new UsernamePasswordPostgresConnectionStringBuilder(config);

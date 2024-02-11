@@ -5,20 +5,20 @@ namespace Backend.HealthChecks;
 
 public class DatabaseOnlineHealthCheck : IHealthCheck
 {
-    private readonly ISqlHelper _sqlHelper;
+    private readonly ISqlHelper SqlHelper;
     private readonly string _databaseName;
 
     public DatabaseOnlineHealthCheck(IConfiguration config, ISqlHelper sqlHelper)
     {
         _databaseName = config["BudgetDatabaseName"]!;
-        _sqlHelper = sqlHelper;
+        SqlHelper = sqlHelper;
     }
 
     public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken ct)
     {
         try
         {
-            if (await _sqlHelper.ExistsAsync("postgres", "SELECT 1 FROM pg_catalog.pg_database WHERE datname = @databaseName", new { databaseName = _databaseName }))
+            if (await SqlHelper.ExistsAsync("postgres", "SELECT 1 FROM pg_catalog.pg_database WHERE datname = @databaseName", new { databaseName = _databaseName }))
             {
                 return HealthCheckResult.Healthy();
             }

@@ -17,7 +17,7 @@ namespace BackendFunctionalTests;
 public class FileImportControllerIntegrationTests
 {
     private ISqlConnectionStringBuilder _connectionStringBuilder;
-    private ISqlHelper _sqlHelper;
+    private ISqlHelper SqlHelper;
     private IConfiguration _config;
 
     private IBudgetDatabaseContext _budgetDatabaseContext;
@@ -43,9 +43,9 @@ public class FileImportControllerIntegrationTests
             }).Build();
 
         _connectionStringBuilder = new UsernamePasswordPostgresConnectionStringBuilder(_config);
-        _sqlHelper = new SqlHelper(_connectionStringBuilder);
+        SqlHelper = new SqlHelper(_connectionStringBuilder);
 
-        _budgetDatabaseContext = new BudgetDatabaseContext(_config, _sqlHelper);
+        _budgetDatabaseContext = new BudgetDatabaseContext(_config, SqlHelper);
     }
 
     [OneTimeTearDown]
@@ -63,7 +63,7 @@ public class FileImportControllerIntegrationTests
     [TearDown]
     public async Task TearDown()
     {
-        await _sqlHelper.ExecuteAsync("postgres", $@"DROP DATABASE {_config["BudgetDatabaseName"]!} WITH (FORCE)");
+        await SqlHelper.ExecuteAsync("postgres", $@"DROP DATABASE {_config["BudgetDatabaseName"]!} WITH (FORCE)");
     }
 
     [Test]
