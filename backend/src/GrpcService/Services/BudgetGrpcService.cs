@@ -18,6 +18,7 @@ public class BudgetGrpcService : BudgetService.BudgetServiceBase
 
     public override async Task<GetPurchasesResponse> GetPurchases(GetPurchasesRequest request, ServerCallContext? context)
     {
+
         IEnumerable<Domain.Models.Purchase> purchases = await _budgetDatabaseContext.GetPurchasesAsync(
             description: request.Description,
             category: request.Category,
@@ -401,7 +402,7 @@ public class BudgetGrpcService : BudgetService.BudgetServiceBase
 
     #region Wishlist
 
-    public override async Task<GetWishlistResponse> GetWishlistItems(GetWishlistRequest request, ServerCallContext? context)
+    public override async Task<GetWishlistResponse> GetWishlist(GetWishlistRequest request, ServerCallContext? context)
     {
         IEnumerable<Domain.Models.WishlistItem> WishlistItems = await _budgetDatabaseContext.GetWishlistAsync();
 

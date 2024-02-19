@@ -1,16 +1,33 @@
-import React, { useEffect } from 'react';
-import bulmaCalendar from 'bulma-calendar';
+import { forwardRef } from 'react';
 
-import { Form } from 'react-bulma-components';
 import { Size } from 'react-bulma-components/src/components';
+import ReactDatePicker from 'react-datepicker';
 
-const { Input } = Form;
+import 'react-datepicker/dist/react-datepicker.css';
+import { start } from 'repl';
+
+interface DatePickerInputProps {
+  onClick: () => void;
+  value: string;
+  size: Size;
+}
+
+const RefInput = forwardRef<HTMLInputElement, DatePickerInputProps>(
+  ({ onClick, value, size }: DatePickerInputProps, ref) => (
+    <input
+      className={`input is-${size}`}
+      ref={ref}
+      onClick={onClick}
+      value={value}
+    />
+  ),
+);
 
 interface BulmaDateRangepickerProps {
-  onSelect: (startDate: Date, endDate: Date) => void;
-  size?: Size;
-  initialStartValue?: Date;
-  initialEndValue?: Date;
+  onSelect: (startDate: Date | null, endDate: Date | null) => void;
+  size: Size;
+  initialStartValue: Date;
+  initialEndValue: Date;
 }
 
 export default function BulmaDateRangepicker({
@@ -19,28 +36,21 @@ export default function BulmaDateRangepicker({
   initialStartValue,
   initialEndValue,
 }: BulmaDateRangepickerProps) {
-  useEffect(() => {
-    const calendars = bulmaCalendar.attach('[type="date"]', {
-      startDate: initialStartValue,
-      endDate: initialEndValue,
-      isRange: true,
-    });
-
-    for (let i = 0; i < calendars.length; i += 1) {
-      calendars[i].on('select', (date) => {
-        if (
-          date.data.date.start !== undefined &&
-          date.data.date.end !== undefined
-        ) {
-          onSelect(date.data.date.start, date.data.date.end);
-        }
-      });
+  function onChange(dates: (Date | null)[]) {
+    const [startDate, endDate] = dates;
+    if (endDate !== null) {
+      console.log(dates);
+      onSelect(startDate, endDate);
     }
-  }); // Empty dependency array ensures the effect runs only once on component mount
+  }
 
   return (
-    <div>
-      <Input type="date" size={size} />
-    </div>
+    <ReactDatePicker
+      startDate={initialStartValue}
+      endDate={initialEndValue}
+      onChange={(dates) => onChange(dates)}
+      customInput={<RefInput size={size} />}
+      selectsRange
+    />
   );
 }

@@ -59,13 +59,16 @@ export default function PurchaseHistory({
         category,
       ]);
     },
-    [contextBridge],
+    [contextBridge.ipcRenderer, existingCategories],
   );
 
   const getRecentPurchases = useCallback(
     async (purchaseFilter: PurchaseFilter): Promise<Purchase[]> => {
     if (isConnected) {
-      const purchasesResp = await contextBridge.ipcRenderer.invoke('get-purchases', purchaseFilter);
+        const purchasesResp = await contextBridge.ipcRenderer.invoke(
+          'get-purchases',
+          purchaseFilter,
+        );
       if (isPurchaseArray(purchasesResp)) {
         return purchasesResp;
       }

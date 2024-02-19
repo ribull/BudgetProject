@@ -3,6 +3,10 @@ import { useState } from 'react';
 import { ElectronHandler } from '../main/preload';
 import PurchaseHistory from './PurchaseHistory/PurchaseHistory';
 import PayHistoryHistory from './PayHistory/PayHistoryHistory';
+import FuturePurchases from './FuturePurchase/FuturePurchases';
+import Investments from './Investments/Investments';
+import Savings from './Savings/Savings';
+import Wishlist from './Wishlist/Wishlist';
 
 enum PersonalFinanceSections {
   Record = 'Record',
@@ -26,7 +30,14 @@ export default function PersonalFinanceTab({
   const [selectedSection, setSelectedSection] = useState<SelectedSection>();
 
   const sections: Record<PersonalFinanceSections, string[]> = {
-    [PersonalFinanceSections.Record]: ['Purchase History', 'Pay History'],
+    [PersonalFinanceSections.Record]: [
+      'Purchase History',
+      'Future Purchase',
+      'Pay History',
+      'Investments',
+      'Savings',
+      'Wishlist'
+    ],
     [PersonalFinanceSections.Visualize]: ['Tables', 'Graphs'],
   };
 
@@ -64,8 +75,39 @@ export default function PersonalFinanceTab({
               <PurchaseHistory contextBridge={contextBridge} isConnected={isConnected} />
             )}
           {selectedSection?.section === PersonalFinanceSections.Record &&
+            selectedSection.subsection === 'Future Purchase' && (
+              <FuturePurchases
+                contextBridge={contextBridge}
+                isConnected={isConnected}
+              />
+            )}
+          {selectedSection?.section === PersonalFinanceSections.Record &&
             selectedSection.subsection === 'Pay History' && (
-              <PayHistoryHistory contextBridge={contextBridge} isConnected={isConnected} />
+              <PayHistoryHistory
+                contextBridge={contextBridge}
+                isConnected={isConnected}
+              />
+            )}
+          {selectedSection?.section === PersonalFinanceSections.Record &&
+            selectedSection.subsection === 'Investments' && (
+              <Investments
+                contextBridge={contextBridge}
+                isConnected={isConnected}
+              />
+            )}
+          {selectedSection?.section === PersonalFinanceSections.Record &&
+            selectedSection.subsection === 'Savings' && (
+              <Savings
+                contextBridge={contextBridge}
+                isConnected={isConnected}
+              />
+            )}
+          {selectedSection?.section === PersonalFinanceSections.Record &&
+            selectedSection.subsection === 'Wishlist' && (
+              <Wishlist
+                contextBridge={contextBridge}
+                isConnected={isConnected}
+              />
             )}
         </Block>
       </Columns.Column>

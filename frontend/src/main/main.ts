@@ -18,20 +18,7 @@ import { resolveHtmlPath } from './util';
 import { BudgetServiceClient } from '../generated/budget_service';
 import { HealthClient } from '../generated/health_check';
 import { GRPC_PORT, REST_PORT } from '../helpers/Constants';
-import {
-  addCategory,
-  addPayHistory,
-  addPurchase,
-  deletePayHistory,
-  deletePurchase,
-  editPayHistory,
-  editPurchase,
-  getCategories,
-  getPayHistories,
-  getPurchases,
-  pollOnline,
-  uploadFile,
-} from './contextBridgeFunctions';
+import * as api from './contextBridgeFunctions';
 import { isAppConstants } from '../helpers/TypeSafety';
 
 class AppUpdater {
@@ -48,7 +35,7 @@ let healthCheckService: HealthClient | null = null;
 let serverName: string | null = null;
 
 // Events
-ipcMain.on('settings-change', (event, arg) => {
+ipcMain.on('settings-change', (_event, arg) => {
   if (isAppConstants(arg)) {
     if (arg.apiUrl !== null) {
       serverName = arg.apiUrl;
@@ -65,46 +52,122 @@ ipcMain.on('settings-change', (event, arg) => {
   }
 });
 
-ipcMain.handle('poll-online', async () => pollOnline(healthCheckService));
+ipcMain.handle('poll-online', async () => api.pollOnline(healthCheckService));
 
-ipcMain.handle('get-purchases', async (event, arg) =>
-  getPurchases(arg, budgetService),
+ipcMain.handle('get-purchases', async (_event, arg) =>
+  api.getPurchases(arg, budgetService),
 );
 
-ipcMain.handle('add-purchase', async (event, args) =>
-  addPurchase(args, budgetService),
+ipcMain.handle('add-purchase', async (_event, args) =>
+  api.addPurchase(args, budgetService),
 );
 
-ipcMain.handle('edit-purchase', async (event, args) =>
-  editPurchase(args, budgetService),
+ipcMain.handle('edit-purchase', async (_event, args) =>
+  api.editPurchase(args, budgetService),
 );
 
-ipcMain.handle('delete-purchase', async (event, arg) =>
-  deletePurchase(arg, budgetService),
+ipcMain.handle('delete-purchase', async (_event, arg) =>
+  api.deletePurchase(arg, budgetService),
 );
 
-ipcMain.handle('upload-file', async (event, arg) =>
-  uploadFile(arg, `${serverName}:${REST_PORT}`),
+ipcMain.handle('upload-file', async (_event, arg) =>
+  api.uploadFile(arg, `${serverName}:${REST_PORT}`),
 );
 
-ipcMain.handle('get-categories', async () => getCategories(budgetService));
+ipcMain.handle('get-categories', async () => api.getCategories(budgetService));
 
-ipcMain.handle('add-category', async (event, arg) =>
-  addCategory(arg, budgetService),
+ipcMain.handle('add-category', async (_event, arg) =>
+  api.addCategory(arg, budgetService),
 );
 
-ipcMain.handle('get-pay-histories', async () => getPayHistories(budgetService));
-
-ipcMain.handle('add-pay-history', async (event, args) =>
-  addPayHistory(args, budgetService),
+ipcMain.handle('get-pay-histories', async () =>
+  api.getPayHistories(budgetService),
 );
 
-ipcMain.handle('edit-pay-history', async (event, args) =>
-  editPayHistory(args, budgetService),
+ipcMain.handle('add-pay-history', async (_event, args) =>
+  api.addPayHistory(args, budgetService),
 );
 
-ipcMain.handle('delete-pay-history', async (event, arg) =>
-  deletePayHistory(arg, budgetService),
+ipcMain.handle('edit-pay-history', async (_event, args) =>
+  api.editPayHistory(args, budgetService),
+);
+
+ipcMain.handle('delete-pay-history', async (_event, arg) =>
+  api.deletePayHistory(arg, budgetService),
+);
+
+ipcMain.handle('get-eras', async () => api.getEras(budgetService));
+
+ipcMain.handle('add-era', async (_event, args) =>
+  api.addEra(args, budgetService),
+);
+
+ipcMain.handle('edit-era', async (_event, args) =>
+  api.editEra(args, budgetService),
+);
+
+ipcMain.handle('delete-era', async (_event, arg) =>
+  api.deleteEra(arg, budgetService),
+);
+
+ipcMain.handle('get-future-purchases', async () =>
+  api.getFuturePurchases(budgetService),
+);
+
+ipcMain.handle('add-future-purchase', async (_event, args) =>
+  api.addFuturePurchase(args, budgetService),
+);
+
+ipcMain.handle('edit-future-purchase', async (_event, args) =>
+  api.editFuturePurchase(args, budgetService),
+);
+
+ipcMain.handle('delete-future-purchase', async (_event, arg) =>
+  api.deleteFuturePurchase(arg, budgetService),
+);
+
+ipcMain.handle('get-investments', async () =>
+  api.getInvestments(budgetService),
+);
+
+ipcMain.handle('add-investment', async (_event, args) =>
+  api.addInvestment(args, budgetService),
+);
+
+ipcMain.handle('edit-investment', async (_event, args) =>
+  api.editInvestment(args, budgetService),
+);
+
+ipcMain.handle('delete-investment', async (_event, arg) =>
+  api.deleteInvestment(arg, budgetService),
+);
+
+ipcMain.handle('get-savings', async () => api.getSavings(budgetService));
+
+ipcMain.handle('add-saved', async (_event, args) =>
+  api.addSaved(args, budgetService),
+);
+
+ipcMain.handle('edit-saved', async (_event, args) =>
+  api.editSaved(args, budgetService),
+);
+
+ipcMain.handle('delete-saved', async (_event, arg) =>
+  api.deleteSaved(arg, budgetService),
+);
+
+ipcMain.handle('get-wishlist', async () => api.getWishlist(budgetService));
+
+ipcMain.handle('add-wishlist-item', async (_event, args) =>
+  api.addWishlistItem(args, budgetService),
+);
+
+ipcMain.handle('edit-wishlist-item', async (_event, args) =>
+  api.editWishlistItem(args, budgetService),
+);
+
+ipcMain.handle('delete-wishlist-item', async (_event, arg) =>
+  api.deleteWishlistItem(arg, budgetService),
 );
 
 if (process.env.NODE_ENV === 'production') {

@@ -12,7 +12,6 @@ import {
 import { PayHistory } from '../../generated/budget_service';
 import IconButton from '../IconButton';
 import BulmaDatepicker from '../BulmaDatepicker';
-import formatDate from '../../helpers/DateFormatter';
 
 const { Input } = Form;
 
@@ -49,7 +48,7 @@ export default function PurchasesTable({
   const [editTaxes, setEditTaxes] = useState('');
   const [editPostTax, setEditPostTaxDeductions] = useState('');
 
-  function savePayHistoryCallback(payHistoryId: number) {
+  const savePayHistoryCallback = useCallback((payHistoryId: number) => {
     saveEditedPayHistory(
       payHistoryId,
       editStartDate,
@@ -59,7 +58,7 @@ export default function PurchasesTable({
       parseFloat(editTaxes),
       parseFloat(editPostTax),
     );
-  }
+  }, [editStartDate, editEndDate, editEarnings, editPreTax, editPostTax]);
 
   const partitionedPayHistories = useMemo(() => {
     const sortedPayHistories = payHistories.sort((p1, p2) => {
@@ -111,73 +110,77 @@ export default function PurchasesTable({
             key={`pay-history-table-cell-sdate-${sortedPayHistories[i].payHistoryId}`}
           >
             {notEditing ? (
-              formatDate(sortedPayHistories[i].payPeriodStartDate)
+              sortedPayHistories[i].payPeriodStartDate?.toDateString()
             ) : (
               <BulmaDatepicker
-                onSelect={(newDate) => setEditStartDate(newDate)}
+                onSelect={(newDate) => newDate !== null && setEditStartDate(newDate)}
                 initialValue={editStartDate}
                 size="small"
               />
             )}
           </td>
           <td
-            key={`pay-history-table-cell-edate-${payHistories[i].payHistoryId}`}
+            key={`pay-history-table-cell-edate-${sortedPayHistories[i].payHistoryId}`}
           >
             {notEditing ? (
-              payHistories[i].payPeriodEndDate?.toDateString()
+              sortedPayHistories[i].payPeriodEndDate?.toDateString()
             ) : (
               <BulmaDatepicker
-                onSelect={(newDate) => setEditEndDate(newDate)}
+                onSelect={(newDate) => newDate !== null && setEditEndDate(newDate)}
                 initialValue={editEndDate}
                 size="small"
               />
             )}
           </td>
           <td
-            key={`pay-history-table-cell-earn-${payHistories[i].earnings}`}
+            key={`pay-history-table-cell-earn-${sortedPayHistories[i].payHistoryId}`}
           >
             {notEditing ? (
-              payHistories[i].earnings
+              sortedPayHistories[i].earnings
             ) : (
               <Input
                 value={editEarnings}
                 onChange={(event) => setEditEarnings(event.currentTarget.value)}
+                size="small"
               />
             )}
           </td>
           <td
-            key={`pay-history-table-cell-pre-${payHistories[i].preTaxDeductions}`}
+            key={`pay-history-table-cell-pre-${sortedPayHistories[i].payHistoryId}`}
           >
             {notEditing ? (
-              payHistories[i].preTaxDeductions
+              sortedPayHistories[i].preTaxDeductions
             ) : (
               <Input
                 value={editPreTax}
                 onChange={(event) => setEditPreTaxDeductions(event.currentTarget.value)}
+                size="small"
               />
             )}
           </td>
           <td
-            key={`pay-history-table-cell-tax-${payHistories[i].taxes}`}
+            key={`pay-history-table-cell-tax-${sortedPayHistories[i].payHistoryId}`}
           >
             {notEditing ? (
-              payHistories[i].taxes
+              sortedPayHistories[i].taxes
             ) : (
               <Input
                 value={editTaxes}
                 onChange={(event) => setEditTaxes(event.currentTarget.value)}
+                size="small"
               />
             )}
           </td>
           <td
-            key={`pay-history-table-cell-post-${payHistories[i].postTaxDeductions}`}
+            key={`pay-history-table-cell-post-${sortedPayHistories[i].payHistoryId}`}
           >
             {notEditing ? (
-              payHistories[i].postTaxDeductions
+              sortedPayHistories[i].postTaxDeductions
             ) : (
               <Input
                 value={editPostTax}
                 onChange={(event) => setEditPostTaxDeductions(event.currentTarget.value)}
+                size="small"
               />
             )}
           </td>
@@ -186,22 +189,23 @@ export default function PurchasesTable({
               <IconButton
                 fontAwesomeIcon={faPencil}
                 onClick={() => {
-                  setEditedRow(payHistories[i].payHistoryId);
-                  setEditStartDate(payHistories[i].payPeriodStartDate ?? new Date());
-                  setEditEndDate(payHistories[i].payPeriodEndDate ?? new Date());
-                  setEditEarnings(`${payHistories[i].earnings}`);
-                  setEditPreTaxDeductions(`${payHistories[i].preTaxDeductions}`);
-                  setEditTaxes(`${payHistories[i].taxes}`);
-                  setEditPostTaxDeductions(`${payHistories[i].postTaxDeductions}`);
+                  console.log(sortedPayHistories[i]);
+                  setEditedRow(sortedPayHistories[i].payHistoryId);
+                  setEditStartDate(sortedPayHistories[i].payPeriodStartDate ?? new Date());
+                  setEditEndDate(sortedPayHistories[i].payPeriodEndDate ?? new Date());
+                  setEditEarnings(`${sortedPayHistories[i].earnings}`);
+                  setEditPreTaxDeductions(`${sortedPayHistories[i].preTaxDeductions}`);
+                  setEditTaxes(`${sortedPayHistories[i].taxes}`);
+                  setEditPostTaxDeductions(`${sortedPayHistories[i].postTaxDeductions}`);
                 }}
               />
             )}
-            {editedRow === payHistories[i].payHistoryId && (
+            {editedRow === sortedPayHistories[i].payHistoryId && (
               <>
                 <IconButton
                   fontAwesomeIcon={faFloppyDisk}
                   onClick={() => {
-                    savePayHistoryCallback(payHistories[i].payHistoryId);
+                    savePayHistoryCallback(sortedPayHistories[i].payHistoryId);
                     setEditedRow(undefined);
                   }}
                 />
@@ -212,7 +216,7 @@ export default function PurchasesTable({
                 <IconButton
                   fontAwesomeIcon={faTrash}
                   onClick={() => {
-                    deleteRow(payHistories[i].payHistoryId);
+                    deleteRow(sortedPayHistories[i].payHistoryId);
                     setEditedRow(undefined);
                   }}
                 />

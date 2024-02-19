@@ -1,4 +1,12 @@
-import { PayHistory, Purchase } from '../generated/budget_service';
+import {
+  Era,
+  FuturePurchase,
+  Investment,
+  PayHistory,
+  Purchase,
+  Saved,
+  WishlistItem,
+} from '../generated/budget_service';
 import ApiConnected from '../types/ApiConnected';
 import AppConstants from '../types/AppConstants';
 import { PurchaseFilter, PurchaseFilterType } from '../types/PurchaseFilter';
@@ -119,6 +127,75 @@ function isPayHistoryArray(value: unknown): value is PayHistory[] {
   return false;
 }
 
+function isEra(value: unknown): value is Era {
+  const convertedValue = value as Era;
+  return (
+    convertedValue.eraId !== undefined &&
+    convertedValue.name !== undefined &&
+    convertedValue.startDate !== undefined
+  );
+}
+
+function isEraArray(value: unknown): value is Era[] {
+  return isArray(value) && value.every((val) => isEra(val));
+}
+
+function isFuturePurchase(value: unknown): value is FuturePurchase {
+  const convertedValue = value as FuturePurchase;
+  return (
+    convertedValue.futurePurchaseId !== undefined &&
+    convertedValue.date !== undefined &&
+    convertedValue.description !== undefined &&
+    convertedValue.amount !== undefined &&
+    convertedValue.category !== undefined
+  );
+}
+
+function isFuturePurchaseArray(value: unknown): value is FuturePurchase[] {
+  return isArray(value) && value.every((val) => isFuturePurchase(val));
+}
+
+function isInvestment(value: unknown): value is Investment {
+  const convertedValue = value as Investment;
+  return (
+    convertedValue.investmentId !== undefined &&
+    convertedValue.description !== undefined &&
+    convertedValue.currentAmount !== undefined &&
+    convertedValue.lastUpdated !== undefined
+  );
+}
+
+function isInvestmentArray(value: unknown): value is Investment[] {
+  return isArray(value) && value.every((val) => isInvestment(val));
+}
+
+function isSaved(value: unknown): value is Saved {
+  const convertedValue = value as Saved;
+  return (
+    convertedValue.savedId !== undefined &&
+    convertedValue.date !== undefined &&
+    convertedValue.description !== undefined &&
+    convertedValue.amount !== undefined
+  );
+}
+
+function isSavings(value: unknown): value is Saved[] {
+  return isArray(value) && value.every((val) => isSaved(val));
+}
+
+function isWishlistItem(value: unknown): value is WishlistItem {
+  const convertedValue = value as WishlistItem;
+  return (
+    convertedValue.wishlistItemId !== undefined &&
+    convertedValue.description !== undefined &&
+    convertedValue.notes !== undefined
+  );
+}
+
+function isWishlist(value: unknown): value is WishlistItem[] {
+  return isArray(value) && value.every((val) => isWishlistItem(val));
+}
+
 export {
   isArray,
   isBoolean,
@@ -136,4 +213,9 @@ export {
   isPurchase,
   isPurchaseArray,
   isPayHistoryArray,
+  isEraArray,
+  isFuturePurchaseArray,
+  isInvestmentArray,
+  isSavings,
+  isWishlist,
 };

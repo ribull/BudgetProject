@@ -1,23 +1,23 @@
 import { useState } from 'react';
-import { Button, Form } from 'react-bulma-components';
+import { Button, Dropdown, Form } from 'react-bulma-components';
 import AutoComplete from '../Autocomplete';
 
-import { Purchase } from '../../generated/budget_service';
 import BulmaDatepicker from '../BulmaDatepicker';
+import { isString } from '../../helpers/TypeSafety';
 
 const { Input, Control, Field, Label, Help } = Form;
 
-interface InsertPurchaseProps {
+interface InsertFuturePurchaseProps {
   onSubmit: (date: Date, description: string, amount: number, category: string) => void;
-  topPurchases: Purchase[];
   existingCategories: string[];
 }
 
-export default function InsertPurchase({ onSubmit, topPurchases, existingCategories }: InsertPurchaseProps) {
+export default function InsertFuturePurchase({ onSubmit, existingCategories }: InsertFuturePurchaseProps) {
   const [date, setDate] = useState(new Date());
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState('');
+  const [repeating, setRepeating] = useState('None');
 
   const categoryIsWarn = !existingCategories.includes(category);
   const amountIsValid = amount !== '' && !Number.isNaN(parseFloat(amount));
@@ -34,25 +34,10 @@ export default function InsertPurchase({ onSubmit, topPurchases, existingCategor
       </Field>
       <Field>
         <Label>Description</Label>
-        <AutoComplete
+        <Input
           value={description}
-          possibleMatches={topPurchases.map((purchase) => purchase.description)}
-          color="text"
-          onSelection={(selection, autoCompleted) => {
-            // Find the purchase it autocompleted to if autocompleted
-            if (autoCompleted) {
-              const purchase = topPurchases.find(
-                (p) => p.description === selection,
-              );
-
-              if (purchase !== undefined) {
-                setAmount(`${purchase.amount}`);
-                setCategory(purchase.category);
-              }
-            }
-
-            setDescription(selection);
-          }}
+          onChange={(event) => setDescription(event.currentTarget.value)}
+          size="small"
         />
       </Field>
       <Field>
@@ -83,13 +68,32 @@ export default function InsertPurchase({ onSubmit, topPurchases, existingCategor
         </Help>
       </Field>
       <Field>
+        <Label>Repeating</Label>
+        <Dropdown label={repeating} onChange={(event) => isString(event) && setRepeating(event)}>
+          <Dropdown.Item value="None">
+            None
+          </Dropdown.Item>
+          <Dropdown.Item value="Weekly">
+            Weekly
+          </Dropdown.Item>
+          <Dropdown.Item value="Monthly">
+            Monthly
+          </Dropdown.Item>
+          <Dropdown.Item value="Yearly">
+            Yearly
+          </Dropdown.Item>
+        </Dropdown>
+      </Field>
+      <Field>
         <Label className="aligning-label">Transparent</Label>
         <Button onClick={() => {
           onSubmit(date, description, parseFloat(amount), category);
+          setDate(new Date());
           setDescription('');
           setAmount('');
           setCategory('');
-        }}>Add Purchase</Button>
+          setRepeating('None');
+        }}>Add Future Purchase</Button>
       </Field>
     </Field>
   );

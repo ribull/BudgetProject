@@ -43,7 +43,7 @@ service BudgetService {
   rpc UpdateSaved (UpdateSavedRequest) returns (UpdateSavedResponse);
   rpc DeleteSaved (DeleteSavedRequest) returns (DeleteSavedResponse);
 
-  rpc GetWishlistItems (GetWishlistRequest) returns (GetWishlistResponse);
+  rpc GetWishlist (GetWishlistRequest) returns (GetWishlistResponse);
   rpc AddWishlistItem (AddWishlistItemRequest) returns (AddWishlistItemResponse);
   rpc UpdateWishlistItem (UpdateWishlistItemRequest) returns (UpdateWishlistItemResponse);
   rpc DeleteWishlistItem (DeleteWishlistItemRequest) returns (DeleteWishlistItemResponse);

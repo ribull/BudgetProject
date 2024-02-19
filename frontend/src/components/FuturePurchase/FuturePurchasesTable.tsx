@@ -9,41 +9,37 @@ import {
   faTrash,
   faXmark,
 } from '@fortawesome/free-solid-svg-icons';
-import { Purchase } from '../../generated/budget_service';
+import { FuturePurchase } from '../../generated/budget_service';
 import IconButton from '../IconButton';
 import BulmaDatepicker from '../BulmaDatepicker';
 import AutoComplete from '../Autocomplete';
 
 const { Input } = Form;
 
-interface PurchasesTableProps {
-  purchases: Purchase[];
+interface FuturePurchasesTableProps {
+  futurePurchases: FuturePurchase[];
   maxRows: number;
-  topPurchases: Purchase[];
   existingCategories: string[];
-  requestOlderPurchases: () => void;
   saveEditedPurchase: (
-    purchaseId: number,
+    futurePurchaseId: number,
     date: Date,
     description: string,
     amount: number,
     category: string,
   ) => void;
-  deleteRow: (purchaseId: number) => void;
+  deleteRow: (futurePurchaseId: number) => void;
 }
 
-export default function PurchasesTable({
-  purchases,
+export default function FuturePurchasesTable({
+  futurePurchases,
   maxRows,
-  topPurchases,
   existingCategories,
-  requestOlderPurchases,
   saveEditedPurchase,
   deleteRow,
-}: PurchasesTableProps) {
+}: FuturePurchasesTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [sortColumn, setSortColumn] = useState<string>('Date');
-  const [sortAscending, setSortAscending] = useState(false);
+  const [sortAscending, setSortAscending] = useState(true);
   const [editedRow, setEditedRow] = useState<number>();
 
   const [editDate, setEditDate] = useState(new Date());
@@ -51,11 +47,11 @@ export default function PurchasesTable({
   const [editAmount, setEditAmount] = useState('');
   const [editCategory, setEditCategory] = useState('');
 
-  function savePurchaseCallback(purchaseId: number) {
+  function savePurchaseCallback(futurePurchaseId: number) {
     const amt = parseFloat(editAmount);
     if (!Number.isNaN(amt)) {
       saveEditedPurchase(
-        purchaseId,
+        futurePurchaseId,
         editDate,
         editDescription,
         parseFloat(editAmount),
@@ -68,7 +64,7 @@ export default function PurchasesTable({
   const editCategoryIsWarn = existingCategories.includes(editCategory);
 
   const partitionedPurchases = useMemo(() => {
-    const sortedPurchases = purchases.sort((p1, p2) => {
+    const sortedPurchases = futurePurchases.sort((p1, p2) => {
       let result: number = 0;
       if (sortColumn === 'Date') {
         result =
@@ -95,12 +91,12 @@ export default function PurchasesTable({
         returned.push([]);
       }
 
-      const notEditing = editedRow !== sortedPurchases[i].purchaseId;
+      const notEditing = editedRow !== sortedPurchases[i].futurePurchaseId;
 
       returned[returned.length - 1].push(
-        <tr key={`purchases-table-tr-${sortedPurchases[i].purchaseId}`}>
+        <tr key={`purchases-table-tr-${sortedPurchases[i].futurePurchaseId}`}>
           <td
-            key={`purchases-table-cell-date-${sortedPurchases[i].purchaseId}`}
+            key={`purchases-table-cell-date-${sortedPurchases[i].futurePurchaseId}`}
             className="td-med"
           >
             {notEditing ? (
@@ -114,36 +110,21 @@ export default function PurchasesTable({
             )}
           </td>
           <td
-            key={`purchases-table-cell-desc-${sortedPurchases[i].purchaseId}`}
+            key={`purchases-table-cell-desc-${sortedPurchases[i].futurePurchaseId}`}
             className="td-lg"
           >
             {notEditing ? (
               sortedPurchases[i].description
             ) : (
-              <AutoComplete
+              <Input
                 value={editDescription}
-                possibleMatches={topPurchases.map((purchase) => purchase.description)}
-                color="text"
-                onSelection={(selection, autoCompleted) => {
-                  // Find the purchase it autocompleted to if autocompleted
-                  if (autoCompleted) {
-                    const purchase = topPurchases.find(
-                      (p) => p.description === selection,
-                    );
-
-                    if (purchase !== undefined) {
-                      setEditAmount(`${purchase.amount}`);
-                      setEditCategory(purchase.category);
-                    }
-                  }
-
-                  setEditDescription(selection);
-                }}
+                onChange={(event) => setEditDescription(event.currentTarget.value)}
+                size="small"
               />
             )}
           </td>
           <td
-            key={`purchases-table-cell-amt-${sortedPurchases[i].purchaseId}`}
+            key={`purchases-table-cell-amt-${sortedPurchases[i].futurePurchaseId}`}
             className="td-sm"
           >
             {notEditing ? (
@@ -158,7 +139,7 @@ export default function PurchasesTable({
             )}
           </td>
           <td
-            key={`purchases-table-cell-cat-${sortedPurchases[i].purchaseId}`}
+            key={`purchases-table-cell-cat-${sortedPurchases[i].futurePurchaseId}`}
             className="td-med"
           >
             {notEditing ? (
@@ -177,7 +158,7 @@ export default function PurchasesTable({
               <IconButton
                 fontAwesomeIcon={faPencil}
                 onClick={() => {
-                  setEditedRow(sortedPurchases[i].purchaseId);
+                  setEditedRow(sortedPurchases[i].futurePurchaseId);
                   setEditDate(sortedPurchases[i].date ?? new Date());
                   setEditDescription(sortedPurchases[i].description);
                   setEditAmount(`${sortedPurchases[i].amount}`);
@@ -185,12 +166,12 @@ export default function PurchasesTable({
                 }}
               />
             )}
-            {editedRow === sortedPurchases[i].purchaseId && (
+            {editedRow === sortedPurchases[i].futurePurchaseId && (
               <>
                 <IconButton
                   fontAwesomeIcon={faFloppyDisk}
                   onClick={() => {
-                    savePurchaseCallback(sortedPurchases[i].purchaseId);
+                    savePurchaseCallback(sortedPurchases[i].futurePurchaseId);
                     setEditedRow(undefined);
                   }}
                 />
@@ -201,7 +182,7 @@ export default function PurchasesTable({
                 <IconButton
                   fontAwesomeIcon={faTrash}
                   onClick={() => {
-                    deleteRow(sortedPurchases[i].purchaseId);
+                    deleteRow(sortedPurchases[i].futurePurchaseId);
                     setEditedRow(undefined);
                   }}
                 />
@@ -214,7 +195,7 @@ export default function PurchasesTable({
 
     return returned;
   }, [
-    purchases,
+    futurePurchases,
     sortColumn,
     sortAscending,
     maxRows,
@@ -269,13 +250,7 @@ export default function PurchasesTable({
         current={currentPage}
         total={partitionedPurchases.length}
         showFirstLast
-        onChange={(pageNum) => {
-          setCurrentPage(pageNum);
-          if (pageNum + 1 >= partitionedPurchases.length) {
-            // If it's one of the last two
-            requestOlderPurchases();
-          }
-        }}
+        onChange={(pageNum) => setCurrentPage(pageNum)}
       />
     </div>
   );

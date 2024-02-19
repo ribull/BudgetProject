@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Button, Form } from 'react-bulma-components';
 
-import { Purchase } from '../../generated/budget_service';
 import BulmaDateRangepicker from '../BulmaDateRangepicker';
 
 const { Input, Control, Field, Label, Help } = Form;
@@ -17,14 +16,17 @@ export default function InsertPayHistory({ onSubmit }: InsertPayHistoryProps) {
   const [taxes, setTaxes] = useState('');
   const [postTax, setPostTaxDeductions] = useState('');
 
+  console.log(dateRange);
+
   return (
     <Field kind="group">
       <Field>
         <Label>Date Range</Label>
         <BulmaDateRangepicker
-          onSelect={(newStartDate, newEndDate) => setDateRange([newStartDate, newEndDate])}
+          onSelect={(newStartDate, newEndDate) => newStartDate !== null && newEndDate !== null && setDateRange([newStartDate, newEndDate])}
           initialStartValue={dateRange[0]}
           initialEndValue={dateRange[1]}
+          size="small"
         />
       </Field>
       <Field>
@@ -33,6 +35,7 @@ export default function InsertPayHistory({ onSubmit }: InsertPayHistoryProps) {
           <Input
             value={earnings}
             onChange={(event) => setEarnings(event.currentTarget.value)}
+            size="small"
           />
         </Control>
       </Field>
@@ -42,6 +45,7 @@ export default function InsertPayHistory({ onSubmit }: InsertPayHistoryProps) {
           <Input
             value={preTax}
             onChange={(event) => setPreTaxDeductions(event.currentTarget.value)}
+            size="small"
           />
         </Control>
       </Field>
@@ -51,6 +55,7 @@ export default function InsertPayHistory({ onSubmit }: InsertPayHistoryProps) {
           <Input
             value={taxes}
             onChange={(event) => setTaxes(event.currentTarget.value)}
+            size="small"
           />
         </Control>
       </Field>
@@ -60,6 +65,7 @@ export default function InsertPayHistory({ onSubmit }: InsertPayHistoryProps) {
           <Input
             value={postTax}
             onChange={(event) => setPostTaxDeductions(event.currentTarget.value)}
+            size="small"
           />
         </Control>
       </Field>
@@ -67,7 +73,6 @@ export default function InsertPayHistory({ onSubmit }: InsertPayHistoryProps) {
         <Label className="aligning-label">Transparent</Label>
         <Button onClick={() => {
           onSubmit(dateRange, parseFloat(earnings), parseFloat(preTax), parseFloat(taxes), parseFloat(postTax));
-          setDateRange([new Date(), new Date()]);
           setEarnings('');
           setPreTaxDeductions('');
           setTaxes('');

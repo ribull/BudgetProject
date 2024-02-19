@@ -75,6 +75,7 @@ export default function AutoComplete({
             onChange={(event) => handleTyping(event)}
             onKeyDown={(event) => handleKeyPress(event)}
             color={color}
+            size="small"
           />
         </div>
         <div className="dropdown-menu">

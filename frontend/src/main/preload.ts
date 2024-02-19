@@ -15,7 +15,27 @@ export type Channels =
   | 'get-pay-histories'
   | 'add-pay-history'
   | 'edit-pay-history'
-  | 'delete-pay-history';
+  | 'delete-pay-history'
+  | 'get-eras'
+  | 'add-era'
+  | 'edit-era'
+  | 'delete-era'
+  | 'get-future-purchases'
+  | 'add-future-purchase'
+  | 'edit-future-purchase'
+  | 'delete-future-purchase'
+  | 'get-investments'
+  | 'add-investment'
+  | 'edit-investment'
+  | 'delete-investment'
+  | 'get-savings'
+  | 'add-saved'
+  | 'edit-saved'
+  | 'delete-saved'
+  | 'get-wishlist'
+  | 'add-wishlist-item'
+  | 'edit-wishlist-item'
+  | 'delete-wishlist-item';
 
 const electronHandler = {
   ipcRenderer: {
