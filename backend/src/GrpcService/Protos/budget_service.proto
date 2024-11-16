@@ -7,15 +7,46 @@ package budget_proto;
 
 service BudgetService {
   rpc GetPurchases (GetPurchasesRequest) returns (GetPurchasesResponse);
+  rpc GetMostCommonPurchases (GetMostCommonPurchasesRequest) returns (GetMostCommonPurchasesResponse);
   rpc AddPurchase (AddPurchaseRequest) returns (AddPurchaseResponse);
+  rpc UpdatePurchase (UpdatePurchaseRequest) returns (UpdatePurchaseResponse);
+  rpc DeletePurchase (DeletePurchaseRequest) returns (DeletePurchaseResponse);
+
   rpc AddCategory (AddCategoryRequest) returns (AddCategoryResponse);
   rpc DeleteCategory (DeleteCategoryRequest) returns (DeleteCategoryResponse);
   rpc UpdateCategory (UpdateCategoryRequest) returns (UpdateCategoryResponse);
   rpc GetCategories (GetCategoriesRequest) returns (GetCategoriesResponse);
+
   rpc AddPayHistory (AddPayHistoryRequest) returns (AddPayHistoryResponse);
+  rpc UpdatePayHistory (UpdatePayHistoryRequest) returns (UpdatePayHistoryResponse);
   rpc DeletePayHistory (DeletePayHistoryRequest) returns (DeletePayHistoryResponse);
   rpc GetPayHistories (GetPayHistoriesRequest) returns (GetPayHistoriesResponse);
   rpc GetPayHistoriesForMonth (GetPayHistoriesForMonthRequest) returns (GetPayHistoriesForMonthResponse);
+
+  rpc GetEras (GetErasRequest) returns (GetErasResponse);
+  rpc AddEra (AddEraRequest) returns (AddEraResponse);
+  rpc UpdateEra (UpdateEraRequest) returns (UpdateEraResponse);
+  rpc DeleteEra (DeleteEraRequest) returns (DeleteEraResponse);
+
+  rpc GetFuturePurchases (GetFuturePurchasesRequest) returns (GetFuturePurchasesResponse);
+  rpc AddFuturePurchase (AddFuturePurchaseRequest) returns (AddFuturePurchaseResponse);
+  rpc UpdateFuturePurchase (UpdateFuturePurchaseRequest) returns (UpdateFuturePurchaseResponse);
+  rpc DeleteFuturePurchase (DeleteFuturePurchaseRequest) returns (DeleteFuturePurchaseResponse);
+
+  rpc GetInvestments (GetInvestmentsRequest) returns (GetInvestmentsResponse);
+  rpc AddInvestment (AddInvestmentRequest) returns (AddInvestmentResponse);
+  rpc UpdateInvestment (UpdateInvestmentRequest) returns (UpdateInvestmentResponse);
+  rpc DeleteInvestment (DeleteInvestmentRequest) returns (DeleteInvestmentResponse);
+
+  rpc GetSavings (GetSavingsRequest) returns (GetSavingsResponse);
+  rpc AddSaved (AddSavedRequest) returns (AddSavedResponse);
+  rpc UpdateSaved (UpdateSavedRequest) returns (UpdateSavedResponse);
+  rpc DeleteSaved (DeleteSavedRequest) returns (DeleteSavedResponse);
+
+  rpc GetWishlist (GetWishlistRequest) returns (GetWishlistResponse);
+  rpc AddWishlistItem (AddWishlistItemRequest) returns (AddWishlistItemResponse);
+  rpc UpdateWishlistItem (UpdateWishlistItemRequest) returns (UpdateWishlistItemResponse);
+  rpc DeleteWishlistItem (DeleteWishlistItemRequest) returns (DeleteWishlistItemResponse);
 }
 
 message GetPurchasesRequest {
@@ -29,6 +60,17 @@ message GetPurchasesResponse {
   repeated Purchase purchases = 1;
 }
 
+message GetMostCommonPurchasesRequest {
+  optional google.protobuf.StringValue category = 1;
+  optional google.protobuf.Timestamp start_time = 2;
+  optional google.protobuf.Timestamp end_time = 3;
+  optional google.protobuf.Int32Value count = 4;
+}
+
+message GetMostCommonPurchasesResponse {
+  repeated Purchase purchases = 1;
+}
+
 message AddPurchaseRequest {
   google.protobuf.Timestamp date = 1;
   string description = 2;
@@ -37,6 +79,22 @@ message AddPurchaseRequest {
 }
 
 message AddPurchaseResponse { }
+
+message UpdatePurchaseRequest {
+  int32 purchase_id = 1;
+  google.protobuf.Timestamp date = 2;
+  string description = 3;
+  double amount = 4;
+  string category = 5;
+}
+
+message UpdatePurchaseResponse { }
+
+message DeletePurchaseRequest {
+  int32 purchase_id = 1;
+}
+
+message DeletePurchaseResponse { }
 
 message Purchase {
   int32 purchase_id = 1;
@@ -82,6 +140,18 @@ message AddPayHistoryRequest {
 
 message AddPayHistoryResponse { }
 
+message UpdatePayHistoryRequest {
+  int32 pay_history_id = 1;
+  google.protobuf.Timestamp pay_period_start_date = 2;
+  google.protobuf.Timestamp pay_period_end_date = 3;
+  double earnings = 4;
+  double pre_tax_deductions = 5;
+  double taxes = 6;
+  double post_tax_deductions = 7;
+}
+
+message UpdatePayHistoryResponse { }
+
 message DeletePayHistoryRequest {
   int32 pay_history_id = 1;
 }
@@ -114,3 +184,189 @@ message PayHistory {
   double taxes = 6;
   double post_tax_deductions = 7;
 }
+
+message Era {
+  int32 era_id = 1;
+  string name = 2;
+  google.protobuf.Timestamp start_date = 3;
+  optional google.protobuf.Timestamp end_date = 4;
+}
+
+message GetErasRequest { }
+
+message GetErasResponse {
+  repeated Era eras = 1;
+}
+
+message AddEraRequest {
+  string name = 1;
+  google.protobuf.Timestamp start_date = 2;
+  optional google.protobuf.Timestamp end_date = 3;
+}
+
+message AddEraResponse { }
+
+message UpdateEraRequest {
+  int32 era_id = 1;
+  string name = 2;
+  google.protobuf.Timestamp start_date = 3;
+  optional google.protobuf.Timestamp end_date = 4;
+}
+
+message UpdateEraResponse { }
+
+message DeleteEraRequest {
+  int32 era_id = 1;
+}
+
+message DeleteEraResponse { }
+
+message FuturePurchase {
+  int32 future_purchase_id = 1;
+  google.protobuf.Timestamp date = 2;
+  string description = 3;
+  double amount = 4;
+  string category = 5;
+}
+
+message GetFuturePurchasesRequest { }
+
+message GetFuturePurchasesResponse {
+  repeated FuturePurchase future_purchases = 1;
+}
+
+message AddFuturePurchaseRequest {
+  google.protobuf.Timestamp date = 1;
+  string description = 2;
+  double amount = 3;
+  string category = 4;
+}
+
+message AddFuturePurchaseResponse { }
+
+message UpdateFuturePurchaseRequest {
+  int32 future_purchase_id = 1;
+  google.protobuf.Timestamp date = 2;
+  string description = 3;
+  double amount = 4;
+  string category = 5;
+}
+
+message UpdateFuturePurchaseResponse { }
+
+message DeleteFuturePurchaseRequest {
+  int32 future_purchase_id = 1;
+}
+
+message DeleteFuturePurchaseResponse { }
+
+message Investment {
+  int32 investment_id = 1;
+  string description = 2;
+  double current_amount = 3;
+  google.protobuf.DoubleValue yearly_growth_rate = 4;
+  google.protobuf.Timestamp last_updated = 5;
+}
+
+message GetInvestmentsRequest { }
+
+message GetInvestmentsResponse {
+  repeated Investment investments = 1;
+}
+
+message AddInvestmentRequest {
+  string description = 1;
+  double current_amount = 2;
+  google.protobuf.DoubleValue yearly_growth_rate = 3;
+  google.protobuf.Timestamp last_updated = 4;
+}
+
+message AddInvestmentResponse { }
+
+message UpdateInvestmentRequest {
+  int32 investment_id = 1;
+  string description = 2;
+  double current_amount = 3;
+  google.protobuf.DoubleValue yearly_growth_rate = 4;
+  google.protobuf.Timestamp last_updated = 5;
+}
+
+message UpdateInvestmentResponse { }
+
+message DeleteInvestmentRequest {
+  int32 investment_id = 1;
+}
+
+message DeleteInvestmentResponse { }
+
+message Saved {
+  int32 saved_id = 1;
+  google.protobuf.Timestamp date = 2;
+  string description = 3;
+  double amount = 4;
+}
+
+message GetSavingsRequest { }
+
+message GetSavingsResponse {
+  repeated Saved savings = 1;
+}
+
+message AddSavedRequest {
+  google.protobuf.Timestamp date = 1;
+  string description = 2;
+  double amount = 3;
+}
+
+message AddSavedResponse { }
+
+message UpdateSavedRequest {
+  int32 saved_id = 1;
+  google.protobuf.Timestamp date = 2;
+  string description = 3;
+  double amount = 4;
+}
+
+message UpdateSavedResponse { }
+
+message DeleteSavedRequest {
+  int32 saved_id = 1;
+}
+
+message DeleteSavedResponse { }
+
+message WishlistItem {
+  int32 wishlist_item_id = 1;
+  string description = 2;
+  google.protobuf.DoubleValue amount = 3;
+  string notes = 4;
+}
+
+message GetWishlistRequest { }
+
+message GetWishlistResponse {
+  repeated WishlistItem wishlist_items = 1;
+}
+
+message AddWishlistItemRequest {
+  string description = 1;
+  google.protobuf.DoubleValue amount = 2;
+  string notes = 3;
+}
+
+message AddWishlistItemResponse { }
+
+message UpdateWishlistItemRequest {
+  int32 wishlist_item_id = 1;
+  string description = 2;
+  google.protobuf.DoubleValue amount = 3;
+  string notes = 4;
+}
+
+message UpdateWishlistItemResponse { }
+
+message DeleteWishlistItemRequest { 
+  int32 wishlist_item_id = 1;
+}
+
+message DeleteWishlistItemResponse { }

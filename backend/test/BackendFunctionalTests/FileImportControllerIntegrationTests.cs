@@ -17,7 +17,7 @@ namespace BackendFunctionalTests;
 public class FileImportControllerIntegrationTests
 {
     private ISqlConnectionStringBuilder _connectionStringBuilder;
-    private ISqlHelper _sqlHelper;
+    private ISqlHelper SqlHelper;
     private IConfiguration _config;
 
     private IBudgetDatabaseContext _budgetDatabaseContext;
@@ -27,20 +27,25 @@ public class FileImportControllerIntegrationTests
     [OneTimeSetUp]
     public async Task OneTimeSetUp()
     {
-        _postgreSqlContainer = new PostgreSqlBuilder().Build();
+        _postgreSqlContainer = new PostgreSqlBuilder()
+            .Build();
 
         await _postgreSqlContainer.StartAsync();
 
-        _connectionStringBuilder = new UsernamePasswordPostgresConnectionStringBuilder("postgres", "postgres", _postgreSqlContainer.Hostname, _postgreSqlContainer.GetMappedPublicPort(5432));
-        _sqlHelper = new SqlHelper(_connectionStringBuilder);
-
         _config = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string>()
+            .AddInMemoryCollection(new Dictionary<string, string?>()
             {
-                { "BudgetDatabaseName", "budgetdb" }
+                { "BudgetDatabaseName", "budgetdb" },
+                { "PostgreSqlConnectionDetails:ServerName",  _postgreSqlContainer.Hostname },
+                { "PostgreSqlConnectionDetails:Username", "postgres" },
+                { "PostgreSqlConnectionDetails:Password", "postgres" },
+                { "PostgreSqlConnectionDetails:Port", $"{_postgreSqlContainer.GetMappedPublicPort(5432)}" }
             }).Build();
 
-        _budgetDatabaseContext = new BudgetDatabaseContext(_config, _sqlHelper);
+        _connectionStringBuilder = new UsernamePasswordPostgresConnectionStringBuilder(_config);
+        SqlHelper = new SqlHelper(_connectionStringBuilder);
+
+        _budgetDatabaseContext = new BudgetDatabaseContext(_config, SqlHelper);
     }
 
     [OneTimeTearDown]
@@ -52,13 +57,13 @@ public class FileImportControllerIntegrationTests
     [SetUp]
     public void Setup()
     {
-        DatabaseDeployer.DeployDatabase(_connectionStringBuilder.GetConnectionString(_config["BudgetDatabaseName"]));
+        DatabaseDeployer.DeployDatabase(_connectionStringBuilder.GetConnectionString(_config["BudgetDatabaseName"]!));
     }
 
     [TearDown]
     public async Task TearDown()
     {
-        await _sqlHelper.ExecuteAsync("postgres", $@"DROP DATABASE {_config["BudgetDatabaseName"]} WITH (FORCE)");
+        await SqlHelper.ExecuteAsync("postgres", $@"DROP DATABASE {_config["BudgetDatabaseName"]!} WITH (FORCE)");
     }
 
     [Test]

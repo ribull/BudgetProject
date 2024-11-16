@@ -1,4 +1,5 @@
 ﻿using Backend.Interfaces;
+using Domain.Models.Options;
 
 namespace Backend.Implementations;
 
@@ -9,12 +10,18 @@ public class UsernamePasswordPostgresConnectionStringBuilder : ISqlConnectionStr
     private readonly string _serverName;
     private readonly int _port;
 
-    public UsernamePasswordPostgresConnectionStringBuilder(string username, string password, string serverName, int port)
+    public UsernamePasswordPostgresConnectionStringBuilder(IConfiguration config)
     {
-        _username = username;
-        _password = password;
-        _serverName = serverName;
-        _port = port;
+        PostgreSqlConnectionDetailsOptions? options = config.GetSection(PostgreSqlConnectionDetailsOptions.PostgreSqlConnectionDetails).Get<PostgreSqlConnectionDetailsOptions>();
+        if (options is null)
+        {
+            throw new Exception($"There is no section {PostgreSqlConnectionDetailsOptions.PostgreSqlConnectionDetails}");
+        }
+
+        _username = options.Username;
+        _password = options.Password;
+        _serverName = options.ServerName;
+        _port = options.Port;
     }
 
     public string GetConnectionString(string database)
